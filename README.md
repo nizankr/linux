@@ -3,12 +3,12 @@
 **Introducing Ability to Migrate Pinned Pages in the Linux Kernel**
 
 By Nizan Kafman-Raz and Omer Daube  
-Under the guidance of Nadav Amit, Dan Tzafrir  
+Under the guidance of Nadav Amit and Dan Tzafrir  
 Computer Science Faculty, Technion, 2024-2025
 
 ## Project Overview
 
-This project introduces the ability to migrate pinned memory pages in the Linux kernel. Pinned pages are memory pages that are locked in physical memory and cannot be swapped out, typically used for direct memory access (DMA) operations by devices. Our implementation enables migration of these previously immovable pages, improving memory management flexibility in the Linux kernel.
+This project introduces the ability to migrate pinned memory pages in the Linux kernel. Pinned pages are memory pages that are locked in physical memory and cannot be migrated, typically caused by direct memory access (DMA) operations. Our implementation enables migration of these previously immovable pages, improving memory management flexibility in the Linux kernel.
 
 Forked from torvalds/linux (v6.6)
 
@@ -19,23 +19,22 @@ Forked from torvalds/linux (v6.6)
 - **mm/migrate.c**: `folio_migrate_copy` - Entry point of our migration flow
 - **drivers/iommu/intel/iommu.c**: `intel_migrate_page` - Our IOMMU-specific migration handler 
 - **mm/page_alias.c**: Contains our struct for page alias and its functions
-- **fs/splice.c**: Modified vmsplice code to allow migrations (changes immutable maps to mutable with vmap)
+- **fs/splice.c**: Modified vmsplice code to allow migrations (changed immutable maps to mutable with vmap)
 
 ### Testing Environment
 
-The project includes a testing environment to validate page migration with device passthrough to a VM (which causes pages to be pinned). The setup consists of:
+The project includes a testing environment to validate page migration with device passthrough to a VM (which causes its pages to be pinned). The setup consists of:
 
 - A VM with a Mellanox network device passed through via SR-IOV
 - Scripts to configure network interfaces and disable transparent huge pages (THP)
-- Tools to monitor and trigger page migration
+- Instructions to monitor and trigger page migration
 
 ## Setup Instructions
 
 ### Prerequisites
 
-- Linux machine with a Mellanox network interface card that supports SR-IOV
-- QEMU/KVM installed for VM creation
-- Root access for device configuration
+- Linux machine with a network interface card that supports SR-IOV
+- QEMU installed for VM creation
 
 ### Setting Up the Test Environment
 
@@ -65,8 +64,8 @@ The project includes a testing environment to validate page migration with devic
    This script launches a VM with:
    - 2GB of memory
    - Ubuntu 20.04 focal server image
-   - The Mellanox VF passed through via VFIO-PCI
-   - Memory pre-allocation enabled (preventing ballooning)
+   - The Mellanox VF passed through
+   - Memory pre-allocation enabled (preventing lazy initialization)
 
 3. **Monitoring and Migration**
 
@@ -86,24 +85,14 @@ The project includes a testing environment to validate page migration with devic
    numastat <pid>
    ```
 
-## Technical Implementation
-
-Our solution introduces page aliasing to enable migration of pinned pages. When a pinned page needs to be migrated:
-
-1. We create a new page at the destination location
-2. Use the page aliasing mechanism to maintain both the original and new page during migration
-3. Update IOMMU mappings to point to the new physical location
-4. Release the original page once migration is complete
-
 This approach works for both IOMMU-pinned pages and mmap-pinned pages (via the vmsplice modifications).
 
 ## Project Files
 
 The repository includes:
 
-- Modified kernel source files
 - Test environment in the `setup_tests` folder:
-  - `cloud-init.iso`: Cloud-init configuration for the VM
+  - `cloud-init.iso`: Configuration for the VM
   - `focal-server-cloudimg-amd64.img`: Ubuntu 20.04 VM image
   - `setup_network_and_thp.sh`: Network and THP configuration script
   - `start_vm.sh`: VM launch script with device passthrough
@@ -113,16 +102,8 @@ The repository includes:
 ## Troubleshooting
 
 - Ensure the PCI address in `setup_network_and_thp.sh` matches your actual Mellanox device
-- Verify that SR-IOV is enabled in your system BIOS
-- Check that the IOMMU is enabled in your kernel command line (`intel_iommu=on`)
-- Confirm that the device is properly bound to the vfio-pci driver before VM launch
+- Ensure that the kernel is run with intel_iommu=sp_off (in /etc/default/grub), to prevent superpages in the iommu
 
-## Future Work
-
-- Support for additional IOMMU implementations beyond Intel
-- Performance optimizations for the migration process
-- Integration with memory balancing and NUMA policies
-- Support for migration of pinned huge pages
 
 ## License
 

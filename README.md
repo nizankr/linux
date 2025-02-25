@@ -17,10 +17,9 @@ A repository with out testing environment: https://github.com/nizankr/PinMig_tes
 ## Modified Kernel Files
 
 ### `mm/migrate.c`: Migration Code
-Main Changes:
 -  Modified `folio_migrate_copy` and added a check for pinned pages. If pinned, we determine the type of pinning:
-  - **Kernel pinning**: Calls `kernel_migrate_pinned_page_prepare` (retrieves PTE, flushes TLB, clears access bit) and `kernel_migrate_pinned_page_commit` (uses `cmpxchg` to update the PTE).
-  - **DMA pinning**: Calls `call_dma_migrate_page`, which eventually invokes `intel_migrate_pages`.
+    - **Kernel pinning**: Calls `kernel_migrate_pinned_page_prepare` (retrieves PTE, flushes TLB, clears access bit) and `kernel_migrate_pinned_page_commit` (uses `cmpxchg` to update the PTE).
+    - **DMA pinning**: Calls `call_dma_migrate_page`, which eventually invokes `intel_migrate_pages`.
 - Modified `folio_migrate_mapping` to handle extra references:
   - Updated `folio_expected_refs` to account for cases where `GUP_PIN_COUNTING_BIAS` occurs (when `pin_user_pages` is used instead of `get_user_pages`).
   - Implemented a fallback mechanism for migration failures.

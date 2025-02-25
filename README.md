@@ -30,7 +30,7 @@ A repository with out testing environment: https://github.com/nizankr/PinMig_tes
 
 ### `drivers/iommu/intel/iommu.c`: IOMMU-Specific Migration
 - Added `intel_migrate_page`, the migration function for the IOMMU case:
-  - Similar to the kernel migration flow but split into two phases: commit and prepare.
+  - Similar to the kernel migration flow but split into two phases: commit and prepare according to `prepare` boolean.
 - Added dirty and access bits to `drivers/iommu/intel/iommu.h` to support this.
 - Modified:
   - `dma_pte_clear_level`: Iterates over all PTEs being unmapped and calls our reverse mapping removal function.

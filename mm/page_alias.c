@@ -66,7 +66,7 @@ static __init bool need_page_alias(void)
 
 static __init void init_page_alias(void)
 {
-	printk(KERN_INFO "Initializing PageAlias, Nizan Kafman-Raz and Omer Daube\n");
+	printk(KERN_INFO "Initializing PageAlias, Omer Daube and Nizan Kafman-Raz\n");
 }
 
 struct page_ext_operations page_alias_ops = {

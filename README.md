@@ -16,7 +16,34 @@ A repository with out testing environment: https://github.com/nizankr/PinMig_tes
 
 ## Modified Kernel Files
 
-- **mm/migrate.c**: `folio_migrate_copy` - Entry point of our migration flow
-- **drivers/iommu/intel/iommu.c**: `intel_migrate_page` - Our IOMMU-specific migration handler 
-- **mm/page_alias.c**: Contains our struct for page alias and its functions
-- **fs/splice.c**: Modified vmsplice code to allow migrations (changed immutable maps to mutable with vmap)
+### mm/migrate.c: Migration Code
+We primarily modified `folio_migrate_copy`. The key changes include:
+- Added a check for pinned pages. If pinned, we determine the type of pinning:
+  - **Kernel pinning**: Calls `kernel_migrate_pinned_page_prepare` (retrieves PTE, flushes TLB, clears access bit) and `kernel_migrate_pinned_page_commit` (uses `cmpxchg` to update the PTE).
+  - **DMA pinning**: Calls `call_dma_migrate_page`, which eventually invokes `intel_migrate_pages`.
+- Modified `folio_migrate_mapping` to handle extra references:
+  - Updated `folio_expected_refs` to account for cases where `GUP_PIN_COUNTING_BIAS` occurs (when `pin_user_pages` is used instead of `get_user_pages`).
+  - Implemented a fallback mechanism for migration failures.
+
+### fs/splice.c: Supporting Migration in `iter_to_pipe`
+- Modified `iter_to_pipe` to store the vmap of the page instead of the page itself, using `vmap_ptr` in the `pipe_buffer` structure.
+- Introduced wrapper functions (prefixed with `splice_`) to interact with `page_alias.c`, adding null checks where necessary.
+
+### drivers/iommu/intel/iommu.c: IOMMU-Specific Migration
+- Added `intel_migrate_page`, the migration function for the IOMMU case:
+  - Similar to the kernel migration flow but split into two phases: commit and prepare.
+- Added dirty and access bits to `drivers/iommu/intel/iommu.h` to support this.
+- Modified:
+  - `dma_pte_clear_level`: Iterates over all PTEs being unmapped and calls our reverse mapping removal function.
+  - `__domain_mapping`: Iterates over all PTEs being mapped and calls our reverse mapping creation function.
+
+### mm/page_alias.c: Page Alias Management
+- Main file containing our aliasing functions, including:
+  - **Kernel migration helpers**:
+    - `alias_vmap`: Creates a new vmap.
+    - `alias_vunmap`: Releases a vmap.
+    - `alias_vmap_to_page`: Returns the page and "locks" it to prevent migration.
+  - **IOMMU migration helpers**:
+    - `alias_iommu_create_rmap`: Creates a reverse mapping for IOMMU.
+    - `alias_iommu_free_rmap`: Frees the IOMMU reverse mapping.
+

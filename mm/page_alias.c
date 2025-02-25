@@ -8,14 +8,18 @@
 #include <linux/mm.h>
 #include <linux/types.h>
 #include <linux/migrate.h>
-#include <linux/iommu.h>
+#include "../drivers/iommu/intel/iommu.h"
 #include <asm/page.h>
 #include <linux/page_alias.h>
+#include <linux/page-flags.h>
+#include <linux/debugfs.h>
 #include "internal.h"
+#include <linux/mmdebug.h>
 
 #define KERNEL_RMAP 0
 #define IOMMU_RMAP 1
 
+extern int total_rmaps;
 
 #define DAUBE_DBG 1 // Change this to 0 to disable debugging
 
@@ -28,9 +32,13 @@
 
 
 
+
+
+
 struct iommu_rmap {
 	struct iommu_domain *domain;
 	unsigned long phys_pfn;
+	unsigned long iov_pfn;
 };
 
 struct iommu_rmap empty_rmap = {
@@ -106,18 +114,29 @@ noinline void __set_page_alias(struct page *page)
 }
 
 
-void alias_iommu_create_rmap(struct iommu_domain *domain, unsigned long phys_pfn) {
+void alias_iommu_create_rmap(struct iommu_domain *domain, unsigned long phys_pfn, unsigned long iov_pfn) {
 	struct page *page = pfn_to_page(phys_pfn);
+	// int nid = page_to_nid(page);
+	// pr_info("[][][][][][][][][]nid: %d, pfn: %lx\n", nid, phys_pfn);
+	// trace_printk("[][][][][][][][][]nid: %d, pfn: %lx\n", nid, phys_pfn);
 	struct iommu_rmap new_rmap = {
 		.domain = domain,
-		.phys_pfn = phys_pfn
+		.phys_pfn = phys_pfn,
+		.iov_pfn = iov_pfn
 	};
 	BUG_ON(!page);
 	
 	struct page_ext *page_ext = page_ext_get(page);
 	if (!page_ext) {
+		if (!pfn_valid(phys_pfn)){
+			trace_printk("[][][][][][][][][]PAGE-ALIAS (!pfn_valid(phys_pfn)): pfn = %lx\n", phys_pfn);
+			return;
+		}
+		BUG_ON(true);
 		return;
 	}
+
+	total_rmaps++;
 	
 	struct page_alias *page_alias = page_ext_data(page_ext, &page_alias_ops);
 	if (!page_alias) {
@@ -140,30 +159,33 @@ void alias_iommu_create_rmap(struct iommu_domain *domain, unsigned long phys_pfn
 	page_ext_put(page_ext);
 }
 
-void alias_iommu_remove_rmap(unsigned long phys_pfn) {
-	struct page *page = pfn_to_page(phys_pfn);
-	BUG_ON(!page);
+// void alias_iommu_remove_rmap(unsigned long phys_pfn) {
+// 	struct page *page = pfn_to_page(phys_pfn);
+// 	BUG_ON(!page);
 	
-	struct page_ext *page_ext = page_ext_get(page);
-	if (!page_ext) {
-		return;
-	}
+// 	struct page_ext *page_ext = page_ext_get(page);
+// 	if (!page_ext) {
+// 		trace_printk("PAGE-ALIAS (!page_ext): pfn = %lu\n", phys_pfn);
+// 		return;
+// 	}
 	
-	struct page_alias *page_alias = page_ext_data(page_ext, &page_alias_ops);
+// 	struct page_alias *page_alias = page_ext_data(page_ext, &page_alias_ops);
 	
-	spin_lock(&page_alias->lock);  // Acquire spinlock
+// 	spin_lock(&page_alias->lock);  // Acquire spinlock
 	
-	BUG_ON(page_alias->iommu_ref_count == 0);
-	if (page_alias->iommu_ref_count > 1) {
-		page_alias->iommu_ref_count--;
-	} else if (page_alias->iommu_ref_count == 1) {
-		page_alias->iommu_ref_count = 0;
-		page_alias->iommu_rmap = empty_rmap;
-	}
+// 	total_rmaps--;
 	
-	spin_unlock(&page_alias->lock);  // Release spinlock
-	page_ext_put(page_ext);
-}
+// 	BUG_ON(page_alias->iommu_ref_count == 0);
+// 	if (page_alias->iommu_ref_count > 1) {
+// 		page_alias->iommu_ref_count--;
+// 	} else if (page_alias->iommu_ref_count == 1) {
+// 		page_alias->iommu_ref_count = 0;
+// 		page_alias->iommu_rmap = empty_rmap;
+// 	}
+	
+// 	spin_unlock(&page_alias->lock);  // Release spinlock
+// 	page_ext_put(page_ext);
+// }
 
 void *alias_vmap(struct page *page)
 {
@@ -357,7 +379,7 @@ int call_dma_migrate_page(struct page *page, bool prepare, struct folio *folio){
 	struct page_alias *page_alias = page_ext_data(page_ext, &page_alias_ops);
 	struct iommu_rmap iommu_rmap = page_alias->iommu_rmap;
 	struct iommu_domain* domain = iommu_rmap.domain;
-	int ret = domain->ops->migrate_page(domain, iommu_rmap.phys_pfn, folio, prepare);
+	int ret = domain->ops->migrate_page(domain, iommu_rmap.iov_pfn, folio, prepare);
 	page_ext_put(page_ext);
 	return ret;
 }
@@ -370,7 +392,35 @@ void alias_iommu_free_rmap(unsigned long phys_pfn){
 	page = pfn_to_page(phys_pfn);
 	BUG_ON(!page);
 	page_ext = page_ext_get(page);
-	BUG_ON(!page_ext);
+	if (!page_ext) {
+		if (!pfn_valid(phys_pfn)){
+			trace_printk("[][][][][][][][][]PAGE-ALIAS (!pfn_valid(phys_pfn)): pfn = %lx\n", phys_pfn);
+			return;
+		}
+		// if (!section->page_ext){
+		// 	trace_printk("[][][][][][][][][]PAGE-ALIAS (!section->page_ext): pfn = %lx\n", phys_pfn);
+		// 	return;
+		// }
+		// if(!page_ext_invalid(page_ext)){
+		// 	trace_printk("[][][][][][][][][]PAGE-ALIAS (!page_ext_invalid(page_ext)): pfn = %lx\n", phys_pfn);
+		// 	return;
+		// }
+		// if(!get_entry(page_ext, phys_pfn)){
+		// 	trace_printk("[][][][][][][][][]PAGE-ALIAS (!get_entry(page_ext, pfn)): pfn = %lx\n", phys_pfn);
+		// 	return;
+		// }
+		// int nid = page_to_nid(page);
+		// trace_printk("[][][][][][][][][]nid: %d, pfn: %lx\n", nid, phys_pfn);
+		// dump_page(page, "no page_ext");
+		// bool compound = PageCompound(page);
+		trace_printk("[][][][][][][][][]PAGE-ALIAS (!page_ext): pfn = %lx\n", phys_pfn);
+
+		// pr_info("[][][][][][][][][]nid: %d, pfn: %lx\n", nid, phys_pfn);
+		// trace_printk("[][][][][][][][][]nid: %d, pfn: %lx\n", nid, phys_pfn);
+		return;
+	}
+	// BUG_ON(!page_ext);
+	total_rmaps--;
 	page_alias = page_ext_data(page_ext, &page_alias_ops);
 
 	page_alias->iommu_ref_count = 0;

@@ -47,6 +47,8 @@ struct iommu_dma_cookie;
 #define IOMMU_FAULT_READ 0x0
 #define IOMMU_FAULT_WRITE 0x1
 
+
+
 typedef int (*iommu_fault_handler_t)(struct iommu_domain *, struct device *,
 				     unsigned long, int, void *);
 typedef int (*iommu_dev_fault_handler_t)(struct iommu_fault *, void *);

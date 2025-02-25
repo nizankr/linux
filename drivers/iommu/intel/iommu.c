@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: GPL-2.0-only
+/// SPDX-License-Identifier: GPL-2.0-only
 /*
  * Copyright © 2006-2014 Intel Corporation.
  *
@@ -25,6 +25,7 @@
 #include <uapi/linux/iommufd.h>
 #include <linux/delay.h>
 
+
 #include "iommu.h"
 #include "../dma-iommu.h"
 #include "../irq_remapping.h"
@@ -45,6 +46,66 @@
 #define makpitz_dbg(fmt, ...)
 #endif
 
+int total_rmaps = 0;
+
+
+// pinmig
+
+static struct dentry *dir_tr, *file_tr;
+
+
+static ssize_t total_rmaps_read(struct file *filp, char __user *buffer, size_t len, loff_t *offset)
+{
+    char buf[64];
+    int ret = snprintf(buf, sizeof(buf), "%d\n", total_rmaps);
+    return simple_read_from_buffer(buffer, len, offset, buf, ret);
+}
+
+
+static ssize_t total_rmaps_write(struct file *filp, const char __user *buffer, size_t len, loff_t *offset)
+{
+    return 0;
+}
+
+static const struct file_operations fops_tr = {
+    .owner = THIS_MODULE,
+    .read = total_rmaps_read,
+    .write = total_rmaps_write,
+};
+
+
+int __init page_alias_debugfs_init(void)
+{
+    // Create the debugfs directory and file
+    dir_tr = debugfs_create_dir("page_alias", NULL);
+    if (!dir_tr) {
+        pr_err("Failed to create debugfs directory for page_alias :(\n");
+        return -ENOMEM;
+    }
+
+    file_tr = debugfs_create_file("total_rmaps", 0666, dir_tr, NULL, &fops_tr);
+    if (!file_tr) {
+        pr_err("Failed to create debugfs total_rmaps file\n");
+        debugfs_remove(dir_tr);
+        return -ENOMEM;
+    }
+
+
+    pr_info("page_alias debugfs interface initialized\n");
+    return 0;
+}
+
+void __exit page_alias_debugfs_exit(void)
+{
+    debugfs_remove(file_tr);
+    debugfs_remove(dir_tr);
+    pr_info("page_alias debugfs interface removed\n");
+}
+
+
+
+
+// pinmig
 
 
 // pinmig - start
@@ -1259,7 +1320,27 @@ static void dma_pte_clear_level(struct dmar_domain *domain, int level,
 			if (level > 1 && !dma_pte_superpage(pte))
 				dma_pte_list_pagetables(domain, level - 1, pte, freelist);
 
+
+			unsigned long phys_pfn = dma_pte_addr(pte) >> VTD_PAGE_SHIFT;
+			char buf[65];  /* 64 bits + null terminator */
+			int i;
+
+			for (i = 63; i >= 0; i--) {
+				buf[63 - i] = (pte->val & ((uint64_t)1 << i)) ? '1' : '0';
+			}
+			buf[64] = '\0';
+
+			alias_iommu_free_rmap(phys_pfn);
+
+			trace_printk("~~~~~~~~~~~~~~~~~~~~~~~IOMMU-UNMAP: pfn = %lx, pte = %s\n", phys_pfn, buf);
+			
+			
 			dma_clear_pte(pte);
+
+
+
+
+
 			if (!first_pte)
 				first_pte = pte;
 			last_pte = pte;
@@ -2329,6 +2410,8 @@ __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
 		if (!pte) {
 			largepage_lvl = hardware_largepage_caps(domain, iov_pfn,
 					phys_pfn, nr_pages);
+			if (largepage_lvl != 1)
+				pr_info("largepage_lvl != 1\n");
 
 			pte = pfn_to_dma_pte(domain, iov_pfn, &largepage_lvl, gfp);
 			// pr_info("))))))))))))%d)))))))))))))))))))))\n",dma_pte_present(pte));
@@ -2336,9 +2419,16 @@ __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
 				return -ENOMEM;
 			first_pte = pte;
 
+
+			
 			lvl_pages = lvl_to_nr_pages(largepage_lvl);
 
 			/* It is large page*/
+
+			// Is this what nadav said?
+
+
+
 			if (largepage_lvl > 1) {
 				unsigned long end_pfn;
 				unsigned long pages_to_remove;
@@ -2377,7 +2467,7 @@ __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
 		if(!domain_type_is_si(domain)){
 			// pr_info("the important and sanity check = %d", virt_to_kpte((long unsigned int)phys_to_virt(phys_pfn))->pte == pte);
 			trace_printk("IOMMU-MAP: pfn = %lu\n", phys_pfn);
-			alias_iommu_create_rmap(&domain->domain, phys_pfn);
+			alias_iommu_create_rmap(&domain->domain, phys_pfn, iov_pfn);
 			curr_pfn = phys_pfn;
 		}
 		// here - omer
@@ -3916,6 +4006,11 @@ int __init intel_iommu_init(void)
 		pr_info("Calling iommu_pinmig_debugfs_init from intel_iommu_init failed!!!!!!!!!");
 	}
 
+	retv = page_alias_debugfs_init();
+	if (retv){
+		pr_info("Calling page_alias_debugfs_init from intel_iommu_init failed!!!!!!!!!");
+	}
+
 	// pinmig
 
 	/*
@@ -4293,7 +4388,7 @@ static int intel_iommu_map(struct iommu_domain *domain,
 		dmar_domain->max_addr = max_addr;
 	}
 	// pr_info("is iova equls: %llX, %llX\n", hpa, intel_iommu_iova_to_phys(domain, iova));
-	/* Round up size to next multiple of PAGE_SIZE, if it and
+	/* Round up size to next multiple of PAGE_SIZE if it and
 	   the low bits of hpa would take us onto the next page */
 	size = aligned_nrpages(hpa, size);
 	return __domain_mapping(dmar_domain, iova >> VTD_PAGE_SHIFT,
@@ -4328,12 +4423,16 @@ static size_t intel_iommu_unmap(struct iommu_domain *domain,
 				struct iommu_iotlb_gather *gather)
 {
 	unsigned long phys_pfn = intel_iommu_iova_to_phys(domain, iova) >> VTD_PAGE_SHIFT;
+
+	// trace_printk("[][][][][][][][][](first) pfn = %lx, iova = %lx\n", phys_pfn, iova);
+
 	struct dmar_domain *dmar_domain = to_dmar_domain(domain);
+	struct dma_pte *pte;
 	unsigned long start_pfn, last_pfn;
 	int level = 0;
-	trace_printk("IOMMU-UNMAP: pfn = %lu\n", phys_pfn);
-	trace_printk("IOMMU-UNMAP: remove rmap\n");
-	alias_iommu_free_rmap(phys_pfn);
+	pte = pfn_to_dma_pte(dmar_domain, iova >> VTD_PAGE_SHIFT, &level, GFP_ATOMIC);
+	//unsigned long pfn = dma_pte_addr(pte) >> VTD_PAGE_SHIFT;
+	// alias_iommu_free_rmap(phys_pfn);
 	// pr_info("closed iommu alias");
 	
 	/* Cope with horrid API which requires us to unmap more than the
@@ -4942,8 +5041,9 @@ static int intel_migrate_page(struct iommu_domain *domain, unsigned long pfn, st
 	pr_info("In %s# with %d##################################################################", __func__, prepare);
 	struct dmar_domain *dmar_domain = to_dmar_domain(domain);
 	struct iommu_domain_info *info;
+	//switch to pr_debug
 
-	unsigned long i;
+	// unsigned long i;
 	int level = 1;
 	struct dma_pte *ptep, pte, new_pte; 
 	bool dirty, young, first_level; 
@@ -4952,7 +5052,7 @@ static int intel_migrate_page(struct iommu_domain *domain, unsigned long pfn, st
 		pr_info("here1\n");
 		return -EINVAL;
 	}
-	pte = READ_ONCE(*ptep);
+	pte = *ptep; //READ_ONCE
 	// if (!dma_pte_present(&pte)){// || !dma_pte_write(&pte)) 
 	// 	pr_info("here2\n");
 	// 	return -EINVAL;
@@ -4965,16 +5065,36 @@ static int intel_migrate_page(struct iommu_domain *domain, unsigned long pfn, st
 	dirty = dma_pte_dirty(&pte, first_level);
 	young = dma_pte_young(&pte, first_level);
 
+	
+    char buf[65];  /* 64 bits + null terminator */
+    int i;
+
+    for (i = 63; i >= 0; i--) {
+        buf[63 - i] = (pte.val & ((uint64_t)1 << i)) ? '1' : '0';
+    }
+    buf[64] = '\0';
+
+	trace_printk("######%s: PTE(%lu).VAL before all: %s\n", __func__, pfn, buf);
+	unsigned long y;
 	if (prepare) {
 		/* Prepare the migration by clearing the access and dirty bits. */
 		if (dirty || young) {
+			trace_printk("######%s: entered tlbflush + clear bits\n", __func__);
 			new_pte = dma_pte_mkclean(pte, first_level);
 			new_pte = dma_pte_mkyoung(new_pte, first_level);
 			WRITE_ONCE(*ptep, new_pte);
-			xa_for_each(&dmar_domain->iommu_array, i, info)
-				iommu_flush_iotlb_psi(info->iommu, dmar_domain, pfn, 1, 0, 0);
+
 		}
-		trace_printk("######%s: cleared young and dirty bits----------------------------\n", __func__);
+		xa_for_each(&dmar_domain->iommu_array, y, info)
+			iommu_flush_iotlb_psi(info->iommu, dmar_domain, pfn, 1, 0, 0);
+			
+		for (i = 63; i >= 0; i--) {
+			buf[63 - i] = (pte.val & ((uint64_t)1 << i)) ? '1' : '0';
+		}
+		buf[64] = '\0';
+
+		trace_printk("######%s: PTE(%lu).VAL after clear: %s\n", __func__, pfn, buf);
+		trace_printk("######%s: cleared young and dirty bits for %lu----------------------------\n", __func__, pfn);
 		return 0;
 	}
 	pr_info("######IOMMU-MAP: out after prepare\n");
@@ -4988,13 +5108,13 @@ static int intel_migrate_page(struct iommu_domain *domain, unsigned long pfn, st
 
 	new_pte = pte;
 	new_pte.val &= ~VTD_PAGE_MASK;
-	unsigned long new_pfn = page_to_dma_pfn(&new_folio->page); // w/o dma
+	unsigned long new_pfn = page_to_pfn(&new_folio->page); // w/o dma
 	new_pte.val |= (new_pfn << VTD_PAGE_SHIFT);
 	struct page *new_page = folio_page(new_folio, 0);
 	__set_page_alias(new_page);//Why is it not only if succeeded? or even why is this needed bc doesnt every page allready have this?
 	// pr_info("the page in intel_migrate_page in = %ld\n", (unsigned long)&new_page);
 	trace_printk("######IOMMU-MAP: create rmap");
-	alias_iommu_create_rmap(domain, new_pfn);
+	alias_iommu_create_rmap(domain, new_pfn, pfn);
 	
 	makpitz_dbg("######IOMMU-MAP: old pfn: %lu, new_pfn: %lu\n", pfn, new_pfn);
 
@@ -5005,8 +5125,30 @@ static int intel_migrate_page(struct iommu_domain *domain, unsigned long pfn, st
 	if (sleep_time > 0)
 		mdelay(sleep_time);
 
+	dirty = dma_pte_dirty(&pte, first_level);
+	young = dma_pte_young(&pte, first_level);
 
-	trace_printk("######%s: checking young and dirty bits----------------------------\n", __func__);
+
+	for (i = 63; i >= 0; i--) {
+		buf[63 - i] = (pte.val & ((uint64_t)1 << i)) ? '1' : '0';
+	}
+	buf[64] = '\0';
+
+	trace_printk("######%s: PTE(%lu).VAL after wait: %s\n", __func__, pfn, buf);
+
+
+	// ptep = pfn_to_dma_pte(dmar_domain, pfn, &level, GFP_ATOMIC);
+	// pte = *ptep;
+
+	// for (i = 63; i >= 0; i--) {
+	// 	buf[63 - i] = (pte.val & ((uint64_t)1 << i)) ? '1' : '0';
+	// }
+	// buf[64] = '\0';
+
+	// trace_printk("######%s: PTE(%lu).VAL after wait + deref: %s\n", __func__, pfn, buf);
+
+
+	trace_printk("######%s: checking young=%d and dirty=%d bits----------------------------\n", __func__, young, dirty);
 	/* If the access bit is clean we would not need a TLB flush what does this mean? tlb flush only happens in prepare so it happens anyway*/
 	if (!try_cmpxchg64(&ptep->val, &pte.val, new_pte.val)){
 		makpitz_dbg("######IOMMU-MAP: cmpxchg failed!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");

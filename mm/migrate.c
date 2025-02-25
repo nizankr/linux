@@ -66,7 +66,7 @@
 
 #include "internal.h"
 
-#define DAUBE_TRACE 1 // Change this to 0 to disable debugging
+#define DAUBE_TRACE 0 // Change this to 0 to disable debugging
 
 // Conditional Debugging Macro
 #if DAUBE_TRACE
@@ -80,10 +80,12 @@
 
 // Conditional Debugging Macro
 #if DAUBE_DBG
-#define makpitz_dbg(fmt, ...) pr_info(fmt, ##__VA_ARGS__)
+#define makpitz_dbg(fmt, ...) trace_printk(fmt, ##__VA_ARGS__)
 #else
 #define makpitz_dbg(fmt, ...)
 #endif
+
+int count_migrate_pages_batch = 0;
 
 bool isolate_movable_page(struct page *page, isolate_mode_t mode)
 {
@@ -1942,10 +1944,12 @@ static int migrate_pages_batch(struct list_head *from,
 		thp_retry = 0;
 		nr_retry_pages = 0;
 
-		list_for_each_entry_safe(folio, folio2, from, lru) {
+		list_for_each_entry_safe(folio, folio2, from, lru) {//first iteration- checking which can be moved and removing ptes (of normal, not pinned)
 			is_thp = folio_test_large(folio) &&
 				 folio_test_pmd_mappable(folio);
 			nr_pages = folio_nr_pages(folio);
+
+			count_migrate_pages_batch++;
 
 			cond_resched();
 
@@ -1962,6 +1966,7 @@ static int migrate_pages_batch(struct list_head *from,
 			if (!thp_migration_supported() && is_thp) {
 				nr_failed++;
 				stats->nr_thp_failed++;
+				makpitz_dbg("$$$$$$$$$$$$$$$$$First iteration, failed to thp\n");
 				if (!try_split_folio(folio, split_folios)) {
 					stats->nr_thp_split++;
 					continue;
@@ -1999,25 +2004,28 @@ static int migrate_pages_batch(struct list_head *from,
 
 					if (!ret) {
 						stats->nr_thp_split += is_thp;
+						makpitz_dbg("$$$$$$$$$$$$$$$$$First iteration, failed to no_mem, large and not splitting\n");
 						break;
 					} else if (reason == MR_LONGTERM_PIN &&
-						   ret == -EAGAIN) {
-						/*
-						 * Try again to split large folio to
-						 * mitigate the failure of longterm pinning.
-						 */
-						retry++;
-						thp_retry += is_thp;
-						nr_retry_pages += nr_pages;
-						/* Undo duplicated failure counting. */
-						nr_failed--;
-						stats->nr_thp_failed -= is_thp;
-						break;
-					}
+						ret == -EAGAIN) {
+							/*
+							* Try again to split large folio to
+							* mitigate the failure of longterm pinning.
+							*/
+							makpitz_dbg("$$$$$$$$$$$$$$$$$First iteration, failed to no_mem, large and splitting\n");
+							retry++;
+							thp_retry += is_thp;
+							nr_retry_pages += nr_pages;
+							/* Undo duplicated failure counting. */
+							nr_failed--;
+							stats->nr_thp_failed -= is_thp;
+							break;
+						}
 				}
 
 				stats->nr_failed_pages +=
 					nr_pages + nr_retry_pages;
+				makpitz_dbg("$$$$$$$$$$$$$$$$$First iteration, failed to no_mem\n");
 				/* nr_failed isn't updated for not used */
 				stats->nr_thp_failed += thp_retry;
 				rc_saved = rc;
@@ -2045,9 +2053,11 @@ static int migrate_pages_batch(struct list_head *from,
 				 * removed from migration folio list and not
 				 * retried in the next outer loop.
 				 */
+				
 				nr_failed++;
 				stats->nr_thp_failed += is_thp;
 				stats->nr_failed_pages += nr_pages;
+				makpitz_dbg("$$$$$$$$$$$$$$$$$First iteration, failed to default, ret=%d\n", rc);
 				break;
 			}
 		}
@@ -2055,6 +2065,8 @@ static int migrate_pages_batch(struct list_head *from,
 	nr_failed += retry;
 	stats->nr_thp_failed += thp_retry;
 	stats->nr_failed_pages += nr_retry_pages;
+	makpitz_dbg("$$$$$$$$$$$$$$$$$First iteration done, number of failed to retry:%d\n", nr_retry_pages);
+	makpitz_dbg("$$$$$$$$$$$$$$$$$Total failed in first iteration:%d\n", stats->nr_failed_pages);
 move:
 	/* Flush TLBs for all unmapped folios */
 	try_to_unmap_flush();
@@ -2068,7 +2080,7 @@ move:
 
 		dst = list_first_entry(&dst_folios, struct folio, lru);
 		dst2 = list_next_entry(dst, lru);
-		list_for_each_entry_safe(folio, folio2, &unmap_folios, lru) {
+		list_for_each_entry_safe(folio, folio2, &unmap_folios, lru) { //second iteration- migrating everything
 			is_thp = folio_test_large(folio) &&
 				 folio_test_pmd_mappable(folio);
 			nr_pages = folio_nr_pages(folio);
@@ -2087,29 +2099,29 @@ move:
 			 */
 			switch (rc) {
 			case -EAGAIN:
-				makpitz_trace(
+				makpitz_dbg(
 					"in migrate_pages_batch, got try again rc, pass=%d ,nr_pass=%d, retry=%d\n", pass, nr_pass, retry);
 				retry++;
 				thp_retry += is_thp;
 				nr_retry_pages += nr_pages;
 				break;
 			case MIGRATEPAGE_SUCCESS:
-				makpitz_trace(
+				makpitz_dbg(
 					"in migrate_pages_batch, got success rc\n");
 				stats->nr_succeeded += nr_pages;
 				stats->nr_thp_succeeded += is_thp;
 				break;
 			case -EPINMIGF:
-				makpitz_trace(
+				makpitz_dbg(
 					"in migrate_pages_batch, got EPINMIGF rc\n");
 				nr_failed++;
 				stats->nr_thp_failed += is_thp;
 				stats->nr_failed_pages += nr_pages;
-				makpitz_trace("In %s, wanted to remove folio from from list, but it's maybe not working.\n", __func__);
+				makpitz_dbg("In %s, wanted to remove folio from from list, but it's maybe not working.\n", __func__);
 				// list_del(&folio->lru);
 				break;
 			default:
-				makpitz_trace(
+				makpitz_dbg(
 					"in migrate_pages_batch, got default rc\n");
 				nr_failed++;
 				stats->nr_thp_failed += is_thp;
@@ -2816,7 +2828,9 @@ SYSCALL_DEFINE6(move_pages, pid_t, pid, unsigned long, nr_pages,
 		int __user *, status, int, flags)
 {
 	makpitz_trace("In SYSCALL_DEFINE6\n");
-	return kernel_move_pages(pid, nr_pages, pages, nodes, status, flags);
+	int ret = kernel_move_pages(pid, nr_pages, pages, nodes, status, flags);
+	makpitz_dbg("$$$$$$$$$$$$$$$$$$$$$$$$$$$count_migrate_pages_batch=%d\n", count_migrate_pages_batch);
+	return ret;
 }
 
 #ifdef CONFIG_NUMA_BALANCING

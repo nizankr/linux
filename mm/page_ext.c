@@ -183,6 +183,9 @@ static int __init alloc_node_page_ext(int nid)
 	unsigned long table_size;
 	unsigned long nr_pages;
 
+	pr_info("[][][][][][][][][]allocating page_ext for node %d\n", nid);
+	trace_printk("[][][][][][][][][]allocating page_ext for node %d\n", nid);
+
 	nr_pages = NODE_DATA(nid)->node_spanned_pages;
 	if (!nr_pages)
 		return 0;
@@ -204,6 +207,10 @@ static int __init alloc_node_page_ext(int nid)
 	if (!base)
 		return -ENOMEM;
 	NODE_DATA(nid)->node_page_ext = base;
+
+	// pr_info("[][][][][][][][][]success allocating page ext for node %d\n", nid);
+	// trace_printk("[][][][][][][][][]success allocating page ext for node %d\n", nid);
+
 	total_usage += table_size;
 	return 0;
 }

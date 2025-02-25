@@ -2,7 +2,7 @@
 VERSION = 6
 PATCHLEVEL = 6
 SUBLEVEL = 0
-EXTRAVERSION = -iommu-fix-pagelock
+EXTRAVERSION = -iommu_v40
 NAME = Hurr durr I'ma ninja sloth
 
 # *DOCUMENTATION*

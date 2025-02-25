@@ -3,7 +3,7 @@
 **Introducing Ability to Migrate Pinned Pages in the Linux Kernel**
 
 By Nizan Kafman-Raz and Omer Daube  
-Under the guidance of Nadav Amit and Dan Tzafrir  
+Under the guidance of Dr. Nadav Amit and Prof. Dan Tzafrir  
 Computer Science Faculty, Technion, 2024-2025
 
 ## Project Overview

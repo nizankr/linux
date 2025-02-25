@@ -14,9 +14,7 @@ Forked from torvalds/linux (v6.6)
 
 A repository with out testing environment: https://github.com/nizankr/PinMig_testing/
 
-## Key Components
-
-### Modified Kernel Files
+## Modified Kernel Files
 
 - **mm/migrate.c**: `folio_migrate_copy` - Entry point of our migration flow
 - **drivers/iommu/intel/iommu.c**: `intel_migrate_page` - Our IOMMU-specific migration handler 

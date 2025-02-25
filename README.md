@@ -12,7 +12,7 @@ This project introduces the ability to migrate pinned memory pages in the Linux 
 
 Forked from torvalds/linux (v6.6)
 
-A repository with out testing environment: https://github.com/nizankr/PinMig_testing/
+A repository with our testing environment: https://github.com/nizankr/PinMig_testing/
 
 ## Modified Kernel Files
 

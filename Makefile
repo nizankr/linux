@@ -2,7 +2,7 @@
 VERSION = 6
 PATCHLEVEL = 6
 SUBLEVEL = 0
-EXTRAVERSION = -iommu_v40
+EXTRAVERSION = -iommu_v41
 NAME = Hurr durr I'ma ninja sloth
 
 # *DOCUMENTATION*

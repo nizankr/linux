@@ -715,7 +715,6 @@ ssize_t splice_from_pipe(struct pipe_inode_info *pipe, struct file *out,
 ssize_t iter_file_splice_write(struct pipe_inode_info *pipe, struct file *out,
 			       loff_t *ppos, size_t len, unsigned int flags)
 {
-	pr_info("OMERRR");
 	struct splice_desc sd = {
 		.total_len = len,
 		.flags = flags,
@@ -846,7 +845,6 @@ EXPORT_SYMBOL(iter_file_splice_write);
 ssize_t splice_to_socket(struct pipe_inode_info *pipe, struct file *out,
 			 loff_t *ppos, size_t len, unsigned int flags)
 {
-	pr_info("OMERRR?");
 	struct socket *sock = sock_from_file(out);
 	struct bio_vec bvec[16];
 	struct msghdr msg = {};
@@ -913,9 +911,7 @@ ssize_t splice_to_socket(struct pipe_inode_info *pipe, struct file *out,
 					ret = 0;
 				break;
 			}
-			//struct page* buf_page = splice_alias_vmap_to_page(buf);
 			bvec_set_page(&bvec[bc++], buf->page, seg, buf->offset);
-			//splice_alias_page_close(buf, buf_page);
 			remain -= seg;
 			if (remain == 0 || bc >= ARRAY_SIZE(bvec))
 				break;
@@ -1454,20 +1450,12 @@ static int iter_to_pipe(struct iov_iter *from, struct pipe_inode_info *pipe,
 		}
 
 		n = DIV_ROUND_UP(left + start, PAGE_SIZE);
-		// printk(KERN_INFO "NIZAN: eq[0] %d", (void*)vmalloc_to_page(p) == (void*)pages[0]);
-		// printk(KERN_INFO "NIZAN: eq[1] %d", ((void*)vmalloc_to_page(p + 1)) == (void*)pages[1]);
-		// printk(KERN_INFO "NIZAN: eq[1] %d", (void*)(vmalloc_to_page(p + PAGE_SIZE)) == (void*)pages[1]);
 
 		for (i = 0; i < n; i++) {
-			// create the vmap for each page individually
 			p = alias_vmap(pages[i]);
 			int size = min_t(int, left, PAGE_SIZE - start);
 			buf.vmap_ptr = p;
-			// add_to_alias_rmap(pages[i], buf.vmap_ptr);
-			//the page is null - u cant use it anymore
 			buf.page = NULL;
-			//printk(KERN_INFO "NIZAN: write after init %d", (void*)(vmalloc_to_page(buf.vmap_ptr)) == (void*)buf.page);
-			//printk(KERN_INFO "NIZAN is_alias_rmap_empty AFTER init = %d", is_alias_rmap_empty(buf.page));
 			buf.offset = start;
 			buf.len = size;
 			ret = add_to_pipe(pipe, &buf);
@@ -1476,27 +1464,20 @@ static int iter_to_pipe(struct iov_iter *from, struct pipe_inode_info *pipe,
 				// this one got dropped by add_to_pipe()
 				while (++i < n)
 					splice_close_page(&buf);
-				//put_page(pages[i]);
 				goto out;
 			}
 			total += ret;
 			left -= size;
 			start = 0;
 		}
-		//alias_vunmap(p);
 	}
 out:
-	//if (p)
-	//alias_vunmap(p);
 	return total ? total : ret;
 }
 
 static int pipe_to_user(struct pipe_inode_info *pipe, struct pipe_buffer *buf,
 			struct splice_desc *sd)
 {
-	// int n = copy_page_to_iter(alias_vmap_to_page(buf->vmap_ptr), buf->offset, sd->len, sd->u.data);
-	// return n == sd->len ? n : -EFAULT;
-
 	int n = copy_to_iter(buf->vmap_ptr + buf->offset, sd->len, sd->u.data);
 	return n == sd->len ? n : -EFAULT;
 }

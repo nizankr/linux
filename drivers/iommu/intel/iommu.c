@@ -1330,15 +1330,9 @@ static void dma_pte_clear_level(struct dmar_domain *domain, int level,
 			}
 			buf[64] = '\0';
 
-			alias_iommu_free_rmap(phys_pfn);
-
-			trace_printk("~~~~~~~~~~~~~~~~~~~~~~~IOMMU-UNMAP: pfn = %lx, pte = %s\n", phys_pfn, buf);
-			
+			alias_iommu_free_rmap(phys_pfn);			
 			
 			dma_clear_pte(pte);
-
-
-
 
 
 			if (!first_pte)
@@ -2414,20 +2408,11 @@ __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
 				pr_info("largepage_lvl != 1\n");
 
 			pte = pfn_to_dma_pte(domain, iov_pfn, &largepage_lvl, gfp);
-			// pr_info("))))))))))))%d)))))))))))))))))))))\n",dma_pte_present(pte));
 			if (!pte)
 				return -ENOMEM;
 			first_pte = pte;
-
-
 			
 			lvl_pages = lvl_to_nr_pages(largepage_lvl);
-
-			/* It is large page*/
-
-			// Is this what nadav said?
-
-
 
 			if (largepage_lvl > 1) {
 				unsigned long end_pfn;
@@ -2459,18 +2444,11 @@ __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
 		}
 
 		nr_pages -= lvl_pages;
-		// if ((i-1) % 1000 == 0){
-		// 	pr_info(" iter no . %d", i);
-		// }
-		// pr_info("lvl_pages = %ld\n",lvl_pages);
-		//create rmap
+
 		if(!domain_type_is_si(domain)){
-			// pr_info("the important and sanity check = %d", virt_to_kpte((long unsigned int)phys_to_virt(phys_pfn))->pte == pte);
-			trace_printk("IOMMU-MAP: pfn = %lu\n", phys_pfn);
 			alias_iommu_create_rmap(&domain->domain, phys_pfn, iov_pfn);
 			curr_pfn = phys_pfn;
 		}
-		// here - omer
 		iov_pfn += lvl_pages;
 		phys_pfn += lvl_pages;
 		pteval += lvl_pages * VTD_PAGE_SIZE;
@@ -4410,7 +4388,6 @@ static int intel_iommu_map_pages(struct iommu_domain *domain,
 	if (!IS_ALIGNED(iova | paddr, pgsize))
 		return -EINVAL;
 
-	//pr_info("In function %s\n", __func__);
 	ret = intel_iommu_map(domain, iova, paddr, size, prot, gfp);
 	if (!ret && mapped)
 		*mapped = size;
@@ -4424,16 +4401,12 @@ static size_t intel_iommu_unmap(struct iommu_domain *domain,
 {
 	unsigned long phys_pfn = intel_iommu_iova_to_phys(domain, iova) >> VTD_PAGE_SHIFT;
 
-	// trace_printk("[][][][][][][][][](first) pfn = %lx, iova = %lx\n", phys_pfn, iova);
-
 	struct dmar_domain *dmar_domain = to_dmar_domain(domain);
 	struct dma_pte *pte;
 	unsigned long start_pfn, last_pfn;
 	int level = 0;
 	pte = pfn_to_dma_pte(dmar_domain, iova >> VTD_PAGE_SHIFT, &level, GFP_ATOMIC);
-	//unsigned long pfn = dma_pte_addr(pte) >> VTD_PAGE_SHIFT;
-	// alias_iommu_free_rmap(phys_pfn);
-	// pr_info("closed iommu alias");
+
 	
 	/* Cope with horrid API which requires us to unmap more than the
 	   size argument if it happens to be a large-page mapping. */
@@ -5038,89 +5011,48 @@ static void *intel_iommu_hw_info(struct device *dev, u32 *length, u32 *type)
 
 static int intel_migrate_page(struct iommu_domain *domain, unsigned long pfn, struct folio *new_folio, bool prepare)
 {
-	pr_info("In %s# with %d##################################################################", __func__, prepare);
 	struct dmar_domain *dmar_domain = to_dmar_domain(domain);
 	struct iommu_domain_info *info;
-	//switch to pr_debug
 
-	// unsigned long i;
 	int level = 1;
 	struct dma_pte *ptep, pte, new_pte; 
 	bool dirty, young, first_level; 
 	ptep = pfn_to_dma_pte(dmar_domain, pfn, &level, GFP_ATOMIC);
 	if (level != 1){
-		pr_info("here1\n");
 		return -EINVAL;
 	}
-	pte = *ptep; //READ_ONCE
-	// if (!dma_pte_present(&pte)){// || !dma_pte_write(&pte)) 
-	// 	pr_info("here2\n");
-	// 	return -EINVAL;
-	// }
-	// if (!dmar_domain->migration_supported){
-	// 	pr_info("here3\n");
-	// 	return -EINVAL;
-	// }
+	pte = *ptep; 
+
 	first_level = dmar_domain->use_first_level;
 	dirty = dma_pte_dirty(&pte, first_level);
 	young = dma_pte_young(&pte, first_level);
 
-	
-    char buf[65];  /* 64 bits + null terminator */
-    int i;
-
-    for (i = 63; i >= 0; i--) {
-        buf[63 - i] = (pte.val & ((uint64_t)1 << i)) ? '1' : '0';
-    }
-    buf[64] = '\0';
-
-	trace_printk("######%s: PTE(%lu).VAL before all: %s\n", __func__, pfn, buf);
 	unsigned long y;
 	if (prepare) {
 		/* Prepare the migration by clearing the access and dirty bits. */
 		if (dirty || young) {
-			trace_printk("######%s: entered tlbflush + clear bits\n", __func__);
 			new_pte = dma_pte_mkclean(pte, first_level);
 			new_pte = dma_pte_mkyoung(new_pte, first_level);
 			WRITE_ONCE(*ptep, new_pte);
-
 		}
+
 		xa_for_each(&dmar_domain->iommu_array, y, info)
 			iommu_flush_iotlb_psi(info->iommu, dmar_domain, pfn, 1, 0, 0);
-			
-		for (i = 63; i >= 0; i--) {
-			buf[63 - i] = (pte.val & ((uint64_t)1 << i)) ? '1' : '0';
-		}
-		buf[64] = '\0';
 
-		trace_printk("######%s: PTE(%lu).VAL after clear: %s\n", __func__, pfn, buf);
-		trace_printk("######%s: cleared young and dirty bits for %lu----------------------------\n", __func__, pfn);
 		return 0;
 	}
-	pr_info("######IOMMU-MAP: out after prepare\n");
 
 	if (young || dirty){
-		makpitz_dbg("######IOMMU-MAP: before cmpxchg even, young or dirty bits are on!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@2\n");
-		trace_printk("######%s: before cmpxchg even, young or dirty bits are on!@@@@@@@@@@@@@@@@@\n", __func__);
 		return -EBUSY;
 	}
 
-
 	new_pte = pte;
 	new_pte.val &= ~VTD_PAGE_MASK;
-	unsigned long new_pfn = page_to_pfn(&new_folio->page); // w/o dma
+	unsigned long new_pfn = page_to_pfn(&new_folio->page); 
 	new_pte.val |= (new_pfn << VTD_PAGE_SHIFT);
 	struct page *new_page = folio_page(new_folio, 0);
-	__set_page_alias(new_page);//Why is it not only if succeeded? or even why is this needed bc doesnt every page allready have this?
-	// pr_info("the page in intel_migrate_page in = %ld\n", (unsigned long)&new_page);
-	trace_printk("######IOMMU-MAP: create rmap");
+	__set_page_alias(new_page);
 	alias_iommu_create_rmap(domain, new_pfn, pfn);
-	
-	makpitz_dbg("######IOMMU-MAP: old pfn: %lu, new_pfn: %lu\n", pfn, new_pfn);
-
-	// folio_ref_add(new_folio, 1);
-
-	//D-le
 	
 	if (sleep_time > 0)
 		mdelay(sleep_time);
@@ -5128,36 +5060,10 @@ static int intel_migrate_page(struct iommu_domain *domain, unsigned long pfn, st
 	dirty = dma_pte_dirty(&pte, first_level);
 	young = dma_pte_young(&pte, first_level);
 
-
-	for (i = 63; i >= 0; i--) {
-		buf[63 - i] = (pte.val & ((uint64_t)1 << i)) ? '1' : '0';
-	}
-	buf[64] = '\0';
-
-	trace_printk("######%s: PTE(%lu).VAL after wait: %s\n", __func__, pfn, buf);
-
-
-	// ptep = pfn_to_dma_pte(dmar_domain, pfn, &level, GFP_ATOMIC);
-	// pte = *ptep;
-
-	// for (i = 63; i >= 0; i--) {
-	// 	buf[63 - i] = (pte.val & ((uint64_t)1 << i)) ? '1' : '0';
-	// }
-	// buf[64] = '\0';
-
-	// trace_printk("######%s: PTE(%lu).VAL after wait + deref: %s\n", __func__, pfn, buf);
-
-
-	trace_printk("######%s: checking young=%d and dirty=%d bits----------------------------\n", __func__, young, dirty);
 	/* If the access bit is clean we would not need a TLB flush what does this mean? tlb flush only happens in prepare so it happens anyway*/
 	if (!try_cmpxchg64(&ptep->val, &pte.val, new_pte.val)){
-		makpitz_dbg("######IOMMU-MAP: cmpxchg failed!@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@");
-		trace_printk("######%s: cmpxchg failed!@@@@@@@@@@@@@@@@@\n", __func__);
 		return -EPINMIGF;
 	}
-	// __set_page_alias(new_page);//should be moved here
-	makpitz_dbg("######IOMMU-MAP: cmpxchg succeeded!!!!!! DMA pinmig!!!!!!!!!!!");
-	trace_printk("######%s: cmpxchg succeeded!!!!!!!!1\n", __func__);
 	return 0;
 } 
 

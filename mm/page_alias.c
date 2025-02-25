@@ -347,7 +347,7 @@ void alias_iommu_create_rmap(struct iommu_domain *domain, unsigned long phys_pfn
 	struct page_ext *page_ext = page_ext_get(page);
 	if (!page_ext) {
 		if (!pfn_valid(phys_pfn)){
-			// handle case of not valid PFN (MMIO)
+			// handle case of invalid PFN (MMIO)
 			return;
 		}
 		BUG_ON(true);
@@ -394,7 +394,7 @@ void alias_iommu_free_rmap(unsigned long phys_pfn){
 	BUG_ON(!page);
 	page_ext = page_ext_get(page);
 	if (!page_ext) {
-		// handle case of not valid PFN (MMIO)
+		// handle case of invalid PFN (MMIO)
 		if (!pfn_valid(phys_pfn)){
 			return;
 		}

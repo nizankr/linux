@@ -32,6 +32,7 @@
 #include <linux/sysctl.h>
 #include <linux/cpu.h>
 #include <linux/cpuset.h>
+#include <linux/page_alias.h>
 #include <linux/memory_hotplug.h>
 #include <linux/nodemask.h>
 #include <linux/vmstat.h>
@@ -1534,6 +1535,7 @@ inline void post_alloc_hook(struct page *page, unsigned int order,
 		kernel_init_pages(page, 1 << order);
 
 	set_page_owner(page, order, gfp_flags);
+	set_page_alias(page);
 	page_table_check_alloc(page, order);
 }
 

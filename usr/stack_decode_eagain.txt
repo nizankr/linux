@@ -1,0 +1,437 @@
+[  801.708188] BUG: KASAN: wild-memory-access in __rmqueue_pcplist (./include/linux/list.h:195 ./include/linux/list.h:218 ./include/linux/list.h:229 mm/page_alloc.c:2710) 
+[  801.709564] Write of size 8 at addr dead000000000108 by task block_migration/179
+[  801.710988]
+[  801.711326] CPU: 3 PID: 179 Comm: block_migration Not tainted 6.6.0-virtme #59
+[  801.712710] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
+[  801.714312] Call Trace:
+[  801.714826]  <TASK>
+[  801.715266] dump_stack_lvl (lib/dump_stack.c:107) 
+[  801.716013] kasan_report (mm/kasan/report.c:590) 
+[  801.716727] ? __rmqueue_pcplist (./include/linux/list.h:195 ./include/linux/list.h:218 ./include/linux/list.h:229 mm/page_alloc.c:2710) 
+[  801.717606] __rmqueue_pcplist (./include/linux/list.h:195 ./include/linux/list.h:218 ./include/linux/list.h:229 mm/page_alloc.c:2710) 
+[  801.718414] ? lock_acquire (kernel/locking/lockdep.c:467 kernel/locking/lockdep.c:5755 kernel/locking/lockdep.c:5718) 
+[  801.719183] ? get_page_from_freelist (mm/page_alloc.c:2729 mm/page_alloc.c:2779 mm/page_alloc.c:3169) 
+[  801.720132] ? __pfx___rmqueue_pcplist (mm/page_alloc.c:2683) 
+[  801.721045] ? __pfx_do_raw_spin_trylock (kernel/locking/spinlock_debug.c:121) 
+[  801.721998] get_page_from_freelist (./include/linux/spinlock.h:391 mm/page_alloc.c:2743 mm/page_alloc.c:2779 mm/page_alloc.c:3169) 
+[  899.733085] rcu: INFO: rcu_preempt self-detected stall on CPU
+[  899.734385] rcu:     3-....: (26000 ticks this GP) idle=39ec/1/0x4000000000000000 softirq=1193/1193 fqs=5972
+[  899.736260] rcu:     (t=26004 jiffies g=3997 q=36458 ncpus=8)
+[  899.737347] CPU: 3 PID: 68 Comm: kworker/3:1 Tainted: G    B D            6.6.0-virtme #59
+[  899.738969] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
+[  899.740612] Workqueue: mm_percpu_wq vmstat_update
+[  899.741587] RIP: 0010:kasan_check_range+0x10f/0x1c0
+[  899.742572] Code: 00 00 48 85 d2 0f 84 4c ff ff ff 41 83 e2 07 49 39 d1 0f 85 34 ff ff ff 45 3a 11 0f 8d 2b ff ff ff 5b b8 01 00 00 00 5d 41 5c <c3> cc cc cc cc 41 bc 08 00 00 00 45 29 dc 49 8d 14 2c eb 0c 48 83
+[  899.746199] RSP: 0018:ffff888002e5f9d8 EFLAGS: 00000246
+[  899.747244] RAX: 0000000000000001 RBX: 0000000000000001 RCX: ffffffffaa5a0281
+[  899.748643] RDX: ffffed100ca7a159 RSI: 0000000000000004 RDI: ffff8880653d0ac0
+[  899.750055] RBP: ffff8880653d0ac0 R08: 0000000000000000 R09: ffffed100ca7a158
+[  899.751461] R10: ffff8880653d0ac3 R11: 0000000000000000 R12: 0000000000000001
+[  899.752878] R13: 1ffff110005cbf3d R14: 0000000000000000 R15: 0000000000050ac0
+[  899.754309] FS:  0000000000000000(0000) GS:ffff888065380000(0000) knlGS:0000000000000000
+[  899.755899] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  899.757050] CR2: 000055ae2fa69ffc CR3: 000000000b324002 CR4: 0000000000060ee0
+[  899.758476] Call Trace:
+[  899.758986]  <IRQ>
+[  899.759416]  ? rcu_dump_cpu_stacks+0x191/0x270
+[  899.760337]  ? rcu_sched_clock_irq+0xece/0x1890
+[  899.761259]  ? rcu_is_watching+0x23/0x50
+[  899.762070]  ? lock_release+0xb5/0x3f0
+[  899.762837]  ? perf_event_task_tick+0xfc/0x1f0
+[  899.763748]  ? __pfx_rcu_sched_clock_irq+0x10/0x10
+[  899.764722]  ? lock_acquire+0xd2/0x3f0
+[  899.765487]  ? rcu_is_watching+0x23/0x50
+[  899.766287]  ? lock_release+0xb5/0x3f0
+[  899.767043]  ? tick_sched_timer+0x24/0xa0
+[  899.767865]  ? __pfx_lock_release+0x10/0x10
+[  899.768720]  ? lock_release+0xb5/0x3f0
+[  899.769486]  ? __hrtimer_run_queues+0x28e/0x530
+[  899.770429]  ? kvm_steal_clock+0x43/0x60
+[  899.771234]  ? cpuacct_account_field+0x3d/0x130
+[  899.772153]  ? hrtimer_run_queues+0x35/0x1e0
+[  899.773033]  ? update_process_times+0x82/0xc0
+[  899.773938]  ? tick_sched_handle+0x63/0x90
+[  899.774789]  ? tick_sched_timer+0x82/0xa0
+[  899.775611]  ? __pfx_tick_sched_timer+0x10/0x10
+[  899.776538]  ? __hrtimer_run_queues+0x106/0x530
+[  899.777472]  ? __pfx___hrtimer_run_queues+0x10/0x10
+[  899.778464]  ? kvm_clock_get_cycles+0x18/0x30
+[  899.779353]  ? ktime_get_update_offsets_now+0xf3/0x1f0
+[  899.780392]  ? hrtimer_interrupt+0x1a4/0x370
+[  899.781259]  ? __sysvec_apic_timer_interrupt+0x92/0x250
+[  899.782314]  ? sysvec_apic_timer_interrupt+0x70/0x80
+[  899.783321]  </IRQ>
+[  899.783763]  <TASK>
+[  899.784208]  ? asm_sysvec_apic_timer_interrupt+0x1a/0x20
+[  899.785274]  ? queued_spin_lock_slowpath+0x91/0x610
+[  899.786266]  ? kasan_check_range+0x10f/0x1c0
+[  899.787182]  queued_spin_lock_slowpath+0x91/0x610
+[  899.788182]  ? __pfx_mark_lock+0x10/0x10
+[  899.789026]  ? __pfx_queued_spin_lock_slowpath+0x10/0x10
+[  899.790121]  ? __pfx_mark_lock+0x10/0x10
+[  899.790919]  ? __lock_acquire+0xc63/0x2370
+[  899.791756]  ? rcu_is_watching+0x23/0x50
+[  899.792559]  ? lock_acquire+0xd2/0x3f0
+[  899.793324]  ? __pfx_lock_acquire+0x10/0x10
+[  899.794186]  do_raw_spin_lock+0x19f/0x1b0
+[  899.794999]  ? __pfx_do_raw_spin_lock+0x10/0x10
+[  899.795914]  ? lock_acquire+0xd2/0x3f0
+[  899.796682]  drain_zone_pages+0x4b/0x70
+[  899.797466]  refresh_cpu_vm_stats+0x247/0x3a0
+[  899.798377]  ? __pfx_refresh_cpu_vm_stats+0x10/0x10
+[  899.799358]  ? rcu_is_watching+0x23/0x50
+[  899.800154]  ? lock_release+0xb5/0x3f0
+[  899.800921]  ? lockdep_hardirqs_on_prepare+0x12/0x210
+[  899.801934]  ? finish_task_switch.isra.0+0x158/0x4b0
+[  899.802939]  ? read_word_at_a_time+0xe/0x20
+[  899.803791]  vmstat_update+0x13/0x50
+[  899.804521]  process_one_work+0x415/0x8c0
+[  899.805345]  ? __pfx_lock_acquire+0x10/0x10
+[  899.806196]  ? __pfx_process_one_work+0x10/0x10
+[  899.807123]  worker_thread+0x373/0x670
+[  899.807883]  ? __kthread_parkme+0xd4/0xf0
+[  899.808709]  ? __pfx_worker_thread+0x10/0x10
+[  899.809571]  kthread+0x18f/0x1d0
+[  899.810256]  ? kthread+0xe1/0x1d0
+[  899.810937]  ? __pfx_kthread+0x10/0x10
+[  899.811699]  ret_from_fork+0x34/0x60
+[  899.812428]  ? __pfx_kthread+0x10/0x10
+[  899.813191]  ret_from_fork_asm+0x1b/0x30
+[  899.814000]  </TASK>
+[  801.722901] ? _raw_spin_unlock (./arch/x86/include/asm/preempt.h:95 ./include/linux/spinlock_api_smp.h:143 kernel/locking/spinlock.c:186) 
+[  801.723691] ? check_chain_key (kernel/locking/lockdep.c:3931) 
+[  801.724505] ? __pfx_get_page_from_freelist (mm/page_alloc.c:3052) 
+[  801.725500] ? __pfx_remove_migration_pte (mm/migrate.c:199) 
+[  801.726466] __alloc_pages (mm/page_alloc.c:4428) 
+[  801.727230] ? __pfx___up_read (kernel/locking/rwsem.c:1339) 
+[  801.728004] ? rmap_walk_anon (./include/linux/rmap.h:141 mm/rmap.c:2449) 
+[  801.728799] ? __pfx___alloc_pages (mm/page_alloc.c:4394) 
+[  801.729645] ? migrate_folio_undo_src (./include/linux/list.h:156 ./include/linux/list.h:183 ./include/linux/list.h:311 mm/migrate.c:1206) 
+[  801.730563] ? __pfx_migrate_folio_undo_src (mm/migrate.c:1197) 
+[  801.731547] ? __pfx_try_to_migrate (mm/rmap.c:2137) 
+[  801.732400] ? __pfx_remove_migration_pte (mm/migrate.c:199) 
+[  801.733359] migrate_pages_batch (mm/migrate.c:1266 mm/migrate.c:1817) 
+[  801.734219] ? __pfx_alloc_migration_target (mm/migrate.c:2159) 
+[  801.735207] ? __pfx_migrate_pages_batch (mm/migrate.c:1766) 
+[  801.736139] ? hlock_class (./arch/x86/include/asm/bitops.h:228 ./arch/x86/include/asm/bitops.h:240 ./include/asm-generic/bitops/instrumented-non-atomic.h:142 kernel/locking/lockdep.c:228) 
+[  801.736849] ? mark_lock (kernel/locking/lockdep.c:4655) 
+[  801.737551] ? __pfx___lock_acquire (kernel/locking/lockdep.c:4992) 
+[  801.738408] ? __pfx_mark_lock (kernel/locking/lockdep.c:4638) 
+[  801.739191] migrate_pages (mm/migrate.c:2017 mm/migrate.c:2105) 
+[  801.739949] ? __pfx_alloc_migration_target (mm/migrate.c:2159) 
+[  801.740936] ? __pfx_migrate_pages (mm/migrate.c:2060) 
+[  801.741791] ? mark_lock (kernel/locking/lockdep.c:4655) 
+[  801.742487] ? __pfx_mark_lock (kernel/locking/lockdep.c:4638) 
+[  801.743258] ? check_chain_key (kernel/locking/lockdep.c:3931) 
+[  801.744064] ? check_chain_key (kernel/locking/lockdep.c:3931) 
+[  801.744866] move_pages_and_store_status.isra.0 (mm/migrate.c:2221 mm/migrate.c:2319) 
+[  801.745933] ? __pfx_move_pages_and_store_status.isra.0 (mm/migrate.c:2309) 
+[  801.747105] ? lockdep_hardirqs_on_prepare (kernel/locking/lockdep.c:4299 kernel/locking/lockdep.c:4358 kernel/locking/lockdep.c:4310) 
+[  801.748101] ? _raw_spin_unlock_irq (./arch/x86/include/asm/irqflags.h:42 ./arch/x86/include/asm/irqflags.h:77 ./include/linux/spinlock_api_smp.h:159 kernel/locking/spinlock.c:202) 
+[  801.748965] kernel_move_pages (mm/migrate.c:2434 mm/migrate.c:2614) 
+[  801.749786] ? __pfx_kernel_move_pages (mm/migrate.c:2597) 
+[  801.750698] ? ksys_write (fs/read_write.c:639) 
+[  801.751414] ? __pfx_ksys_write (fs/read_write.c:627) 
+[  801.752204] __x64_sys_move_pages (mm/migrate.c:2623) 
+[  801.753021] do_syscall_64 (arch/x86/entry/common.c:50 arch/x86/entry/common.c:80) 
+[  801.753741] entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:120) 
+[  801.754731] RIP: 0033:0x7f94b5af588d
+[ 801.755446] Code: 5b 41 5c c3 66 0f 1f 84 00 00 00 00 00 f3 0f 1e fa 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 73 b5 0f 00 f7 d8 64 89 01 48
+[  977.818086] rcu: INFO: rcu_preempt self-detected stall on CPU
+[  977.819653] rcu:     3-....: (104005 ticks this GP) idle=39ec/1/0x4000000000000000 softirq=1193/1193 fqs=33849
+[  977.821871] rcu:     (t=104089 jiffies g=3997 q=140109 ncpus=8)
+[  977.823284] CPU: 3 PID: 68 Comm: kworker/3:1 Tainted: G    B D            6.6.0-virtme #59
+[  977.825381] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
+[  977.826957] Workqueue: mm_percpu_wq vmstat_update
+[  977.827896] RIP: 0010:queued_spin_lock_slowpath+0x105/0x610
+[  977.828979] Code: 00 00 00 65 48 2b 04 25 28 00 00 00 0f 85 14 05 00 00 48 81 c4 88 00 00 00 5b 5d 41 5c 41 5d 41 5e 41 5f c3 cc cc cc cc f3 90 <e9> 7a ff ff ff 44 8b 64 24 48 41 81 fc 00 01 00 00 74 7b 44 89 e0
+[  977.832495] RSP: 0018:ffff888002e5f9e0 EFLAGS: 00000202
+[  977.833495] RAX: 0000000000000000 RBX: 0000000000000001 RCX: dffffc0000000000
+[  977.834847] RDX: 0000000000000003 RSI: 0000000000000004 RDI: ffff8880653d0ac0
+[  977.836197] RBP: ffff8880653d0ac0 R08: ffffffffaa5a0289 R09: ffffed100ca7a158
+[  977.837551] R10: ffff8880653d0ac3 R11: 0000000000000000 R12: 0000000000000001
+[  977.838912] R13: 1ffff110005cbf3d R14: 0000000000000000 R15: 0000000000050ac0
+[  977.840270] FS:  0000000000000000(0000) GS:ffff888065380000(0000) knlGS:0000000000000000
+[  977.841808] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  977.842922] CR2: 000055ae2fa69ffc CR3: 000000000b324002 CR4: 0000000000060ee0
+[  977.844289] Call Trace:
+[  977.844780]  <IRQ>
+[  977.845199]  ? rcu_dump_cpu_stacks+0x191/0x270
+[  977.846077]  ? rcu_sched_clock_irq+0xece/0x1890
+[  977.846972]  ? rcu_is_watching+0x23/0x50
+[  977.847754]  ? lock_release+0xb5/0x3f0
+[  977.848499]  ? perf_event_task_tick+0xfc/0x1f0
+[  977.849371]  ? __pfx_rcu_sched_clock_irq+0x10/0x10
+[  977.850316]  ? lock_acquire+0xd2/0x3f0
+[  977.851058]  ? rcu_is_watching+0x23/0x50
+[  977.851828]  ? lock_release+0xb5/0x3f0
+[  977.852663]  ? tick_sched_timer+0x24/0xa0
+[  977.853456]  ? __pfx_lock_release+0x10/0x10
+[  977.854288]  ? lock_release+0xb5/0x3f0
+[  977.855028]  ? __hrtimer_run_queues+0x28e/0x530
+[  977.855901]  ? kvm_steal_clock+0x43/0x60
+[  977.856670]  ? cpuacct_account_field+0x3d/0x130
+[  977.857546]  ? hrtimer_run_queues+0x35/0x1e0
+[  977.858394]  ? update_process_times+0x82/0xc0
+[  977.859244]  ? tick_sched_handle+0x63/0x90
+[  977.860042]  ? tick_sched_timer+0x82/0xa0
+[  977.860820]  ? __pfx_tick_sched_timer+0x10/0x10
+[  977.861699]  ? __hrtimer_run_queues+0x106/0x530
+[  977.862599]  ? __pfx___hrtimer_run_queues+0x10/0x10
+[  977.863542]  ? kvm_clock_get_cycles+0x18/0x30
+[  977.864387]  ? ktime_get_update_offsets_now+0xf3/0x1f0
+[  977.865381]  ? hrtimer_interrupt+0x1a4/0x370
+[  977.866221]  ? __sysvec_apic_timer_interrupt+0x92/0x250
+[  977.867221]  ? sysvec_apic_timer_interrupt+0x70/0x80
+[  977.868169]  </IRQ>
+[  977.868609]  <TASK>
+[  977.869035]  ? asm_sysvec_apic_timer_interrupt+0x1a/0x20
+[  977.870070]  ? queued_spin_lock_slowpath+0x99/0x610
+[  977.871011]  ? queued_spin_lock_slowpath+0x105/0x610
+[  977.871968]  ? __pfx_mark_lock+0x10/0x10
+[  977.872742]  ? __pfx_queued_spin_lock_slowpath+0x10/0x10
+[  977.873759]  ? __pfx_mark_lock+0x10/0x10
+[  977.874535]  ? __lock_acquire+0xc63/0x2370
+[  977.875339]  ? rcu_is_watching+0x23/0x50
+[  977.876105]  ? lock_acquire+0xd2/0x3f0
+[  977.876839]  ? __pfx_lock_acquire+0x10/0x10
+[  977.877664]  do_raw_spin_lock+0x19f/0x1b0
+[  977.878458]  ? __pfx_do_raw_spin_lock+0x10/0x10
+[  977.879334]  ? lock_acquire+0xd2/0x3f0
+[  977.880067]  drain_zone_pages+0x4b/0x70
+[  977.880818]  refresh_cpu_vm_stats+0x247/0x3a0
+[  977.881672]  ? __pfx_refresh_cpu_vm_stats+0x10/0x10
+[  977.882625]  ? rcu_is_watching+0x23/0x50
+[  977.883395]  ? lock_release+0xb5/0x3f0
+[  977.884144]  ? lockdep_hardirqs_on_prepare+0x12/0x210
+[  977.885117]  ? finish_task_switch.isra.0+0x158/0x4b0
+[  977.886104]  ? read_word_at_a_time+0xe/0x20
+[  977.886942]  vmstat_update+0x13/0x50
+[  977.887654]  process_one_work+0x415/0x8c0
+[  977.888439]  ? __pfx_lock_acquire+0x10/0x10
+[  977.889259]  ? __pfx_process_one_work+0x10/0x10
+[  977.890158]  worker_thread+0x373/0x670
+[  977.890897]  ? __kthread_parkme+0xd4/0xf0
+[  977.891684]  ? __pfx_worker_thread+0x10/0x10
+[  977.892515]  kthread+0x18f/0x1d0
+[  977.893163]  ? kthread+0xe1/0x1d0
+[  977.894249]  ? __pfx_kthread+0x10/0x10
+[  977.894989]  ret_from_fork+0x34/0x60
+[  977.895691]  ? __pfx_kthread+0x10/0x10
+[  977.896431]  ret_from_fork_asm+0x1b/0x30
+[  977.897208]  </TASK>
+All code
+========
+   0:   5b                      pop    %rbx
+   1:   41 5c                   pop    %r12
+   3:   c3                      ret    
+   4:   66 0f 1f 84 00 00 00    nopw   0x0(%rax,%rax,1)
+   b:   00 00 
+   d:   f3 0f 1e fa             endbr64 
+  11:   48 89 f8                mov    %rdi,%rax
+  14:   48 89 f7                mov    %rsi,%rdi
+  17:   48 89 d6                mov    %rdx,%rsi
+  1a:   48 89 ca                mov    %rcx,%rdx
+  1d:   4d 89 c2                mov    %r8,%r10
+  20:   4d 89 c8                mov    %r9,%r8
+  23:   4c 8b 4c 24 08          mov    0x8(%rsp),%r9
+  28:   0f 05                   syscall 
+  2a:*  48 3d 01 f0 ff ff       cmp    $0xfffffffffffff001,%rax         <-- trapping instruction
+  30:   73 01                   jae    0x33
+  32:   c3                      ret    
+  33:   48 8b 0d 73 b5 0f 00    mov    0xfb573(%rip),%rcx        # 0xfb5ad
+  3a:   f7 d8                   neg    %eax
+  3c:   64 89 01                mov    %eax,%fs:(%rcx)
+  3f:   48                      rex.W
+
+Code starting with the faulting instruction
+===========================================
+   0:   48 3d 01 f0 ff ff       cmp    $0xfffffffffffff001,%rax
+   6:   73 01                   jae    0x9
+   8:   c3                      ret    
+   9:   48 8b 0d 73 b5 0f 00    mov    0xfb573(%rip),%rcx        # 0xfb583
+  10:   f7 d8                   neg    %eax
+  12:   64 89 01                mov    %eax,%fs:(%rcx)
+  15:   48                      rex.W
+[  801.758978] RSP: 002b:00007ffed7432db8 EFLAGS: 00000246 ORIG_RAX: 0000000000000117
+[  801.760442] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f94b5af588d
+[  801.761807] RDX: 00007ffed7432e10 RSI: 0000000000000001 RDI: 0000000000000000
+[  801.763177] RBP: 00007ffed7432e30 R08: 00007ffed7432e00 R09: 00007ffe00000004
+[  801.764537] R10: 00007ffed7432e04 R11: 0000000000000246 R12: 00007ffed7432f48
+[  801.765906] R13: 000055dbe0a222c9 R14: 000055dbe0a24d50 R15: 00007f94b5f41040
+[  801.767275]  </TASK>
+[  801.767719] ==================================================================
+[  801.769115] Disabling lock debugging due to kernel taint
+[  801.770225] general protection fault, probably for non-canonical address 0xdead000000000108: 0000 [#1] PREEMPT SMP KASAN PTI
+[  801.772348] CPU: 3 PID: 179 Comm: block_migration Tainted: G    B              6.6.0-virtme #59
+[  801.774002] Hardware name: QEMU Standard PC (i440FX + PIIX, 1996), BIOS 1.15.0-1 04/01/2014
+[  801.775584] RIP: 0010:__rmqueue_pcplist (./include/linux/list.h:195 ./include/linux/list.h:218 ./include/linux/list.h:229 mm/page_alloc.c:2710) 
+[ 801.776531] Code: 89 ef 4c 8d 75 f8 4c 89 74 24 08 e8 d5 7b 04 00 48 8b 5d 00 48 8d 7d 08 e8 c8 7b 04 00 4c 8b 65 08 48 8d 7b 08 e8 6b 7c 04 00 <4c> 89 63 08 4c 89 e7 e8 5f 7c 04 00 49 89 1c 24 48 8b 7c 24 78 48
+All code
+========
+   0:   89 ef                   mov    %ebp,%edi
+   2:   4c 8d 75 f8             lea    -0x8(%rbp),%r14
+   6:   4c 89 74 24 08          mov    %r14,0x8(%rsp)
+   b:   e8 d5 7b 04 00          call   0x47be5
+  10:   48 8b 5d 00             mov    0x0(%rbp),%rbx
+  14:   48 8d 7d 08             lea    0x8(%rbp),%rdi
+  18:   e8 c8 7b 04 00          call   0x47be5
+  1d:   4c 8b 65 08             mov    0x8(%rbp),%r12
+  21:   48 8d 7b 08             lea    0x8(%rbx),%rdi
+  25:   e8 6b 7c 04 00          call   0x47c95
+  2a:*  4c 89 63 08             mov    %r12,0x8(%rbx)           <-- trapping instruction
+  2e:   4c 89 e7                mov    %r12,%rdi
+  31:   e8 5f 7c 04 00          call   0x47c95
+  36:   49 89 1c 24             mov    %rbx,(%r12)
+  3a:   48 8b 7c 24 78          mov    0x78(%rsp),%rdi
+  3f:   48                      rex.W
+
+Code starting with the faulting instruction
+===========================================
+   0:   4c 89 63 08             mov    %r12,0x8(%rbx)
+   4:   4c 89 e7                mov    %r12,%rdi
+   7:   e8 5f 7c 04 00          call   0x47c6b
+   c:   49 89 1c 24             mov    %rbx,(%r12)
+  10:   48 8b 7c 24 78          mov    0x78(%rsp),%rdi
+  15:   48                      rex.W
+[  801.780028] RSP: 0018:ffff88800d0a7448 EFLAGS: 00010282
+[  801.781041] RAX: 0000000000000001 RBX: dead000000000100 RCX: ffffffffa93df9fa
+[  801.782409] RDX: fffffbfff58a6531 RSI: 0000000000000008 RDI: ffffffffac532980
+[  801.783774] RBP: ffffea0004ffc408 R08: 0000000000000001 R09: fffffbfff58a6530
+[  801.785141] R10: ffffffffac532987 R11: 6e696c6261736944 R12: dead000000000122
+[  801.786509] R13: ffff88813fff9c80 R14: ffffea0004ffc400 R15: 0000000000033950
+[  801.787878] FS:  00007f94b5eea740(0000) GS:ffff888065380000(0000) knlGS:0000000000000000
+[  801.789427] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  801.790530] CR2: 00007f94b5bb3b80 CR3: 0000000003588001 CR4: 0000000000060ee0
+[  801.791887] Call Trace:
+[  801.792382]  <TASK>
+[  801.792811] ? die_addr (arch/x86/kernel/dumpstack.c:421 arch/x86/kernel/dumpstack.c:460) 
+[  801.793481] ? exc_general_protection (arch/x86/kernel/traps.c:700 arch/x86/kernel/traps.c:642) 
+[  801.794409] ? asm_exc_general_protection (./arch/x86/include/asm/idtentry.h:564) 
+[  801.795358] ? add_taint (./arch/x86/include/asm/bitops.h:60 ./include/asm-generic/bitops/instrumented-atomic.h:29 kernel/panic.c:539) 
+[  801.796044] ? __rmqueue_pcplist (./include/linux/list.h:195 ./include/linux/list.h:218 ./include/linux/list.h:229 mm/page_alloc.c:2710) 
+[  801.796877] ? __rmqueue_pcplist (./include/linux/list.h:195 ./include/linux/list.h:218 ./include/linux/list.h:229 mm/page_alloc.c:2710) 
+[  801.797718] ? lock_acquire (kernel/locking/lockdep.c:467 kernel/locking/lockdep.c:5755 kernel/locking/lockdep.c:5718) 
+[  801.798471] ? get_page_from_freelist (mm/page_alloc.c:2729 mm/page_alloc.c:2779 mm/page_alloc.c:3169) 
+[  801.799410] ? __pfx___rmqueue_pcplist (mm/page_alloc.c:2683) 
+[  801.800307] ? __pfx_do_raw_spin_trylock (kernel/locking/spinlock_debug.c:121) 
+[  801.801243] get_page_from_freelist (./include/linux/spinlock.h:391 mm/page_alloc.c:2743 mm/page_alloc.c:2779 mm/page_alloc.c:3169) 
+[  801.802149] ? _raw_spin_unlock (./arch/x86/include/asm/preempt.h:95 ./include/linux/spinlock_api_smp.h:143 kernel/locking/spinlock.c:186) 
+[  801.802938] ? check_chain_key (kernel/locking/lockdep.c:3931) 
+[  801.803739] ? __pfx_get_page_from_freelist (mm/page_alloc.c:3052) 
+[  801.804712] ? __pfx_remove_migration_pte (mm/migrate.c:199) 
+[  801.805667] __alloc_pages (mm/page_alloc.c:4428) 
+[  801.806424] ? __pfx___up_read (kernel/locking/rwsem.c:1339) 
+[  801.807189] ? rmap_walk_anon (./include/linux/rmap.h:141 mm/rmap.c:2449) 
+[  801.807965] ? __pfx___alloc_pages (mm/page_alloc.c:4394) 
+[  801.808806] ? migrate_folio_undo_src (./include/linux/list.h:156 ./include/linux/list.h:183 ./include/linux/list.h:311 mm/migrate.c:1206) 
+[  801.809735] ? __pfx_migrate_folio_undo_src (mm/migrate.c:1197) 
+[  801.810739] ? __pfx_try_to_migrate (mm/rmap.c:2137) 
+[  801.811594] ? __pfx_remove_migration_pte (mm/migrate.c:199) 
+[  801.812549] migrate_pages_batch (mm/migrate.c:1266 mm/migrate.c:1817) 
+[  801.813402] ? __pfx_alloc_migration_target (mm/migrate.c:2159) 
+[  801.814411] ? __pfx_migrate_pages_batch (mm/migrate.c:1766) 
+[  801.815339] ? hlock_class (./arch/x86/include/asm/bitops.h:228 ./arch/x86/include/asm/bitops.h:240 ./include/asm-generic/bitops/instrumented-non-atomic.h:142 kernel/locking/lockdep.c:228) 
+[  801.816049] ? mark_lock (kernel/locking/lockdep.c:4655) 
+[  801.816741] ? __pfx___lock_acquire (kernel/locking/lockdep.c:4992) 
+[  801.817600] ? __pfx_mark_lock (kernel/locking/lockdep.c:4638) 
+[  801.818371] migrate_pages (mm/migrate.c:2017 mm/migrate.c:2105) 
+[  801.819124] ? __pfx_alloc_migration_target (mm/migrate.c:2159) 
+[  801.820109] ? __pfx_migrate_pages (mm/migrate.c:2060) 
+[  801.820954] ? mark_lock (kernel/locking/lockdep.c:4655) 
+[  801.821666] ? __pfx_mark_lock (kernel/locking/lockdep.c:4638) 
+[  801.822436] ? check_chain_key (kernel/locking/lockdep.c:3931) 
+[  801.823240] ? check_chain_key (kernel/locking/lockdep.c:3931) 
+[  801.824042] move_pages_and_store_status.isra.0 (mm/migrate.c:2221 mm/migrate.c:2319) 
+[  801.825098] ? __pfx_move_pages_and_store_status.isra.0 (mm/migrate.c:2309) 
+[  801.826273] ? lockdep_hardirqs_on_prepare (kernel/locking/lockdep.c:4299 kernel/locking/lockdep.c:4358 kernel/locking/lockdep.c:4310) 
+[  801.827266] ? _raw_spin_unlock_irq (./arch/x86/include/asm/irqflags.h:42 ./arch/x86/include/asm/irqflags.h:77 ./include/linux/spinlock_api_smp.h:159 kernel/locking/spinlock.c:202) 
+[  801.828127] kernel_move_pages (mm/migrate.c:2434 mm/migrate.c:2614) 
+[  801.828937] ? __pfx_kernel_move_pages (mm/migrate.c:2597) 
+[  801.829839] ? ksys_write (fs/read_write.c:639) 
+[  801.830541] ? __pfx_ksys_write (fs/read_write.c:627) 
+[  801.831323] __x64_sys_move_pages (mm/migrate.c:2623) 
+[  801.832146] do_syscall_64 (arch/x86/entry/common.c:50 arch/x86/entry/common.c:80) 
+[  801.832854] entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:120) 
+[  801.833838] RIP: 0033:0x7f94b5af588d
+[ 801.834543] Code: 5b 41 5c c3 66 0f 1f 84 00 00 00 00 00 f3 0f 1e fa 48 89 f8 48 89 f7 48 89 d6 48 89 ca 4d 89 c2 4d 89 c8 4c 8b 4c 24 08 0f 05 <48> 3d 01 f0 ff ff 73 01 c3 48 8b 0d 73 b5 0f 00 f7 d8 64 89 01 48
+All code
+========
+   0:   5b                      pop    %rbx
+   1:   41 5c                   pop    %r12
+   3:   c3                      ret    
+   4:   66 0f 1f 84 00 00 00    nopw   0x0(%rax,%rax,1)
+   b:   00 00 
+   d:   f3 0f 1e fa             endbr64 
+  11:   48 89 f8                mov    %rdi,%rax
+  14:   48 89 f7                mov    %rsi,%rdi
+  17:   48 89 d6                mov    %rdx,%rsi
+  1a:   48 89 ca                mov    %rcx,%rdx
+  1d:   4d 89 c2                mov    %r8,%r10
+  20:   4d 89 c8                mov    %r9,%r8
+  23:   4c 8b 4c 24 08          mov    0x8(%rsp),%r9
+  28:   0f 05                   syscall 
+  2a:*  48 3d 01 f0 ff ff       cmp    $0xfffffffffffff001,%rax         <-- trapping instruction
+  30:   73 01                   jae    0x33
+  32:   c3                      ret    
+  33:   48 8b 0d 73 b5 0f 00    mov    0xfb573(%rip),%rcx        # 0xfb5ad
+  3a:   f7 d8                   neg    %eax
+  3c:   64 89 01                mov    %eax,%fs:(%rcx)
+  3f:   48                      rex.W
+
+Code starting with the faulting instruction
+===========================================
+   0:   48 3d 01 f0 ff ff       cmp    $0xfffffffffffff001,%rax
+   6:   73 01                   jae    0x9
+   8:   c3                      ret    
+   9:   48 8b 0d 73 b5 0f 00    mov    0xfb573(%rip),%rcx        # 0xfb583
+  10:   f7 d8                   neg    %eax
+  12:   64 89 01                mov    %eax,%fs:(%rcx)
+  15:   48                      rex.W
+[  801.838060] RSP: 002b:00007ffed7432db8 EFLAGS: 00000246 ORIG_RAX: 0000000000000117
+[  801.839506] RAX: ffffffffffffffda RBX: 0000000000000000 RCX: 00007f94b5af588d
+[  801.840861] RDX: 00007ffed7432e10 RSI: 0000000000000001 RDI: 0000000000000000
+[  801.842226] RBP: 00007ffed7432e30 R08: 00007ffed7432e00 R09: 00007ffe00000004
+[  801.843579] R10: 00007ffed7432e04 R11: 0000000000000246 R12: 00007ffed7432f48
+[  801.844931] R13: 000055dbe0a222c9 R14: 000055dbe0a24d50 R15: 00007f94b5f41040
+[  801.846301]  </TASK>
+[  801.846746] Modules linked in:
+[  801.847406] ---[ end trace 0000000000000000 ]---
+[  801.848333] RIP: 0010:__rmqueue_pcplist (./include/linux/list.h:195 ./include/linux/list.h:218 ./include/linux/list.h:229 mm/page_alloc.c:2710) 
+[ 801.849304] Code: 89 ef 4c 8d 75 f8 4c 89 74 24 08 e8 d5 7b 04 00 48 8b 5d 00 48 8d 7d 08 e8 c8 7b 04 00 4c 8b 65 08 48 8d 7b 08 e8 6b 7c 04 00 <4c> 89 63 08 4c 89 e7 e8 5f 7c 04 00 49 89 1c 24 48 8b 7c 24 78 48
+All code
+========
+   0:   89 ef                   mov    %ebp,%edi
+   2:   4c 8d 75 f8             lea    -0x8(%rbp),%r14
+   6:   4c 89 74 24 08          mov    %r14,0x8(%rsp)
+   b:   e8 d5 7b 04 00          call   0x47be5
+  10:   48 8b 5d 00             mov    0x0(%rbp),%rbx
+  14:   48 8d 7d 08             lea    0x8(%rbp),%rdi
+  18:   e8 c8 7b 04 00          call   0x47be5
+  1d:   4c 8b 65 08             mov    0x8(%rbp),%r12
+  21:   48 8d 7b 08             lea    0x8(%rbx),%rdi
+  25:   e8 6b 7c 04 00          call   0x47c95
+  2a:*  4c 89 63 08             mov    %r12,0x8(%rbx)           <-- trapping instruction
+  2e:   4c 89 e7                mov    %r12,%rdi
+  31:   e8 5f 7c 04 00          call   0x47c95
+  36:   49 89 1c 24             mov    %rbx,(%r12)
+  3a:   48 8b 7c 24 78          mov    0x78(%rsp),%rdi
+  3f:   48                      rex.W
+
+Code starting with the faulting instruction
+===========================================
+   0:   4c 89 63 08             mov    %r12,0x8(%rbx)
+   4:   4c 89 e7                mov    %r12,%rdi
+   7:   e8 5f 7c 04 00          call   0x47c6b
+   c:   49 89 1c 24             mov    %rbx,(%r12)
+  10:   48 8b 7c 24 78          mov    0x78(%rsp),%rdi
+  15:   48                      rex.W
+[  801.852804] RSP: 0018:ffff88800d0a7448 EFLAGS: 00010282
+[  801.853842] RAX: 0000000000000001 RBX: dead000000000100 RCX: ffffffffa93df9fa
+[  801.855222] RDX: fffffbfff58a6531 RSI: 0000000000000008 RDI: ffffffffac532980
+[  801.856609] RBP: ffffea0004ffc408 R08: 0000000000000001 R09: fffffbfff58a6530
+[  801.857997] R10: ffffffffac532987 R11: 6e696c6261736944 R12: dead000000000122
+[  801.859373] R13: ffff88813fff9c80 R14: ffffea0004ffc400 R15: 0000000000033950
+[  801.860753] FS:  00007f94b5eea740(0000) GS:ffff888065380000(0000) knlGS:0000000000000000
+[  801.862314] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+[  801.863434] CR2: 00007f94b5bb3b80 CR3: 0000000003588001 CR4: 0000000000060ee0

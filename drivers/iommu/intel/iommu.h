@@ -40,6 +40,8 @@
 #define DMA_PTE_READ		BIT_ULL(0)
 #define DMA_PTE_WRITE		BIT_ULL(1)
 #define DMA_PTE_LARGE_PAGE	BIT_ULL(7)
+#define DMA_SL_PTE_ACCESS	BIT_ULL(8)
+#define DMA_SL_PTE_DIRTY	BIT_ULL(9) 
 #define DMA_PTE_SNP		BIT_ULL(11)
 
 #define DMA_FL_PTE_PRESENT	BIT_ULL(0)
@@ -592,6 +594,7 @@ struct dmar_domain {
 					 * otherwise, goes through the second
 					 * level.
 					 */
+	u8 migration_supported:1; /*is migration of used pages by the iommu supported*/
 
 	spinlock_t lock;		/* Protect device tracking lists */
 	struct list_head devices;	/* all devices' list */
@@ -759,6 +762,43 @@ domain_id_iommu(struct dmar_domain *domain, struct intel_iommu *iommu)
 struct dma_pte {
 	u64 val;
 };
+
+// static inline bool dma_pte_get_write(struct dma_pte *pte)
+// {
+//        return (pte->val & DMA_PTE_WRITE);
+// }
+
+static inline u64 dma_pte_young_mask(bool first_level) 
+{ 
+	return first_level ? DMA_FL_PTE_ACCESS : DMA_SL_PTE_ACCESS; 
+}
+
+static inline bool dma_pte_young(struct dma_pte *pte, bool first_level)
+{ 
+	return pte->val & dma_pte_young_mask(first_level);
+}
+
+static inline struct dma_pte dma_pte_mkyoung(struct dma_pte pte, bool first_level)
+{
+	pte.val |= dma_pte_young_mask(first_level); 
+	return pte;
+}
+
+static inline u64 dma_pte_dirty_mask(bool first_level) 
+{ 
+	return first_level ? DMA_FL_PTE_DIRTY : DMA_SL_PTE_DIRTY;
+}
+
+static inline bool dma_pte_dirty(struct dma_pte *pte, bool first_level)
+{
+	return pte->val & dma_pte_dirty_mask(first_level);
+}
+
+static inline struct dma_pte dma_pte_mkclean(struct dma_pte pte, bool first_level)
+{
+	pte.val &= ~dma_pte_dirty_mask(first_level);
+	return pte;
+}
 
 static inline void dma_clear_pte(struct dma_pte *pte)
 {

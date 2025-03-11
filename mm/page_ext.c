@@ -10,6 +10,7 @@
 #include <linux/page_idle.h>
 #include <linux/page_table_check.h>
 #include <linux/rcupdate.h>
+#include <linux/page_alias.h>
 
 /*
  * struct page extension
@@ -84,6 +85,9 @@ static struct page_ext_operations *page_ext_ops[] __initdata = {
 #endif
 #ifdef CONFIG_PAGE_TABLE_CHECK
 	&page_table_check_ops,
+#endif
+#ifdef CONFIG_PAGE_ALIAS
+        &page_alias_ops,
 #endif
 };
 
@@ -179,6 +183,9 @@ static int __init alloc_node_page_ext(int nid)
 	unsigned long table_size;
 	unsigned long nr_pages;
 
+	pr_info("[][][][][][][][][]allocating page_ext for node %d\n", nid);
+	trace_printk("[][][][][][][][][]allocating page_ext for node %d\n", nid);
+
 	nr_pages = NODE_DATA(nid)->node_spanned_pages;
 	if (!nr_pages)
 		return 0;
@@ -200,6 +207,10 @@ static int __init alloc_node_page_ext(int nid)
 	if (!base)
 		return -ENOMEM;
 	NODE_DATA(nid)->node_page_ext = base;
+
+	// pr_info("[][][][][][][][][]success allocating page ext for node %d\n", nid);
+	// trace_printk("[][][][][][][][][]success allocating page ext for node %d\n", nid);
+
 	total_usage += table_size;
 	return 0;
 }
@@ -419,7 +430,7 @@ static int __meminit page_ext_callback(struct notifier_block *self,
 	switch (action) {
 	case MEM_GOING_ONLINE:
 		ret = online_page_ext(mn->start_pfn,
-				   mn->nr_pages, mn->status_change_nid);
+				   mn->nr_pages, mn->status_change_nid);//
 		break;
 	case MEM_OFFLINE:
 		offline_page_ext(mn->start_pfn,

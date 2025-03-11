@@ -278,6 +278,15 @@ static inline void pasid_set_bits(u64 *ptr, u64 mask, u64 bits)
 }
 
 /*
+* Setup the SSADE(Second Stage Access/Dirty bit Enable) field (Bit 9
+* of a scalable mode PASID entry.
+*/
+static inline void pasid_set_ssade(struct pasid_entry *pe) 
+{
+	pasid_set_bits(&pe->val[0], 1 << 9, 1 << 9);
+}
+
+/*
  * Setup the DID(Domain Identifier) field (Bit 64~79) of scalable mode
  * PASID entry.
  */
@@ -627,7 +636,8 @@ int intel_pasid_setup_second_level(struct intel_iommu *iommu,
 	pasid_set_translation_type(pte, PASID_ENTRY_PGTT_SL_ONLY);
 	pasid_set_fault_enable(pte);
 	pasid_set_page_snoop(pte, !!ecap_smpwc(iommu->ecap));
-
+	if (ecap_slads(iommu->ecap))
+		pasid_set_ssade(pte);
 	pasid_set_present(pte);
 	spin_unlock(&iommu->lock);
 

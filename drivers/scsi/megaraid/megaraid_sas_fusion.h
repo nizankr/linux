@@ -229,6 +229,8 @@ static inline bool is_stream_detected(struct RAID_CONTEXT_G35 *rctx_g35)
 	return ((rctx_g35->u.bytes[1] & STREAM_DETECT_MASK));
 }
 
+int __init megasas_fusion_debugfs_init(void);
+
 union RAID_CONTEXT_UNION {
 	struct RAID_CONTEXT raid_context;
 	struct RAID_CONTEXT_G35 raid_context_g35;

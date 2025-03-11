@@ -1,0 +1,108 @@
+WARNING: suspect code indent for conditional statements (8, 12)
+#427: FILE: drivers/iommu/intel/iommu.c:1528:
+ 	list_for_each_entry(dev_pasid, &domain->dev_pasids, link_domain)
++	    qi_flush_piotlb(iommu, did, dev_pasid->pasid, addr, npages, ih);
+
+WARNING: line length of 102 exceeds 100 columns
+#816: FILE: drivers/iommu/intel/iommu.c:2833:
++			    ("Translation already enabled - trying to copy translation structures\n");
+
+WARNING: line length of 103 exceeds 100 columns
+#827: FILE: drivers/iommu/intel/iommu.c:2847:
++				    ("Failed to copy translation tables from previous kernel for %s\n",
+
+WARNING: suspect code indent for conditional statements (24, 28)
+#842: FILE: drivers/iommu/intel/iommu.c:2947:
+ 			for_each_active_dev_scope(drhd->devices,
+[...]
++			    break;
+
+WARNING: Statements should start on a tabstop
+#845: FILE: drivers/iommu/intel/iommu.c:2949:
++			    break;
+
+WARNING: suspect code indent for conditional statements (16, 20)
+#851: FILE: drivers/iommu/intel/iommu.c:2960:
+ 		for_each_active_dev_scope(drhd->devices,
+[...]
++		    if (!dev_is_pci(dev) || !IS_GFX_DEVICE(to_pci_dev(dev)))
+
+WARNING: Statements should start on a tabstop
+#855: FILE: drivers/iommu/intel/iommu.c:2962:
++		    if (!dev_is_pci(dev) || !IS_GFX_DEVICE(to_pci_dev(dev)))
+
+WARNING: suspect code indent for conditional statements (16, 20)
+#994: FILE: drivers/iommu/intel/iommu.c:3244:
+ 		for_each_active_dev_scope(atsru->devices, atsru->devices_cnt,
+[...]
++		    return -EBUSY;
+
+WARNING: Statements should start on a tabstop
+#997: FILE: drivers/iommu/intel/iommu.c:3246:
++		    return -EBUSY;
+
+WARNING: suspect code indent for conditional statements (16, 20)
+#1034: FILE: drivers/iommu/intel/iommu.c:3431:
+ 		for_each_dev_scope(satcu->devices, satcu->devices_cnt, i, tmp)
++		    if (to_pci_dev(tmp) == dev)
+
+WARNING: Statements should start on a tabstop
+#1037: FILE: drivers/iommu/intel/iommu.c:3432:
++		    if (to_pci_dev(tmp) == dev)
+
+WARNING: suspect code indent for conditional statements (16, 20)
+#1045: FILE: drivers/iommu/intel/iommu.c:3483:
+ 		for_each_dev_scope(atsru->devices, atsru->devices_cnt, i, tmp)
++		    if (tmp == &bridge->dev)
+
+WARNING: Statements should start on a tabstop
+#1048: FILE: drivers/iommu/intel/iommu.c:3484:
++		    if (tmp == &bridge->dev)
+
+WARNING: suspect code indent for conditional statements (24, 28)
+#1147: FILE: drivers/iommu/intel/iommu.c:3604:
+ 			for_each_active_iommu(iommu, drhd)
++			    iommu_flush_iotlb_psi(iommu, si_domain,
+
+WARNING: suspect code indent for conditional statements (8, 12)
+#1160: FILE: drivers/iommu/intel/iommu.c:3627:
+ 	for_each_iommu(iommu, drhd)
++	    iommu_disable_translation(iommu);
+
+WARNING: suspect code indent for conditional statements (8, 12)
+#1169: FILE: drivers/iommu/intel/iommu.c:3642:
+ 	for_each_iommu(iommu, drhd)
++	    iommu_disable_protect_mem_regions(iommu);
+
+WARNING: suspect code indent for conditional statements (8, 12)
+#1226: FILE: drivers/iommu/intel/iommu.c:3740:
+ 	for_each_pci_dev(pdev)
++	    if (pdev->external_facing) {
+
+WARNING: Statements should start on a tabstop
+#1231: FILE: drivers/iommu/intel/iommu.c:3741:
++	    if (pdev->external_facing) {
+
+WARNING: suspect code indent for conditional statements (24, 28)
+#1270: FILE: drivers/iommu/intel/iommu.c:3868:
+ 			for_each_iommu(iommu, drhd)
++			    iommu_disable_protect_mem_regions(iommu);
+
+WARNING: suspect code indent for conditional statements (8, 12)
+#1362: FILE: drivers/iommu/intel/iommu.c:4343:
+ 	list_for_each_entry(info, &domain->devices, link)
++	    intel_pasid_setup_page_snoop_control(info->iommu, info->dev,
+
+WARNING: Statements should start on a tabstop
+#1502: FILE: drivers/iommu/intel/iommu.c:4881:
++								 }
+
+total: 0 errors, 21 warnings, 1451 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+changes2.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.

@@ -26,7 +26,7 @@
 #include <linux/memcontrol.h>
 #include <linux/watch_queue.h>
 #include <linux/sysctl.h>
-
+#include <linux/page_alias.h>
 #include <linux/uaccess.h>
 #include <asm/ioctls.h>
 
@@ -75,6 +75,19 @@ static unsigned long pipe_user_pages_soft = PIPE_DEF_BUFFERS * INR_OPEN_CUR;
  * pipe_read & write cleanup
  * -- Manfred Spraul <manfred@colorfullife.com> 2002-05-09
  */
+// struct page* pipe_alias_vmap_to_page(struct pipe_buffer* buf){
+// 	if (buf->vmap_ptr == 0)
+// 		return buf->page;
+// 	return alias_vmap_to_page(buf->vmap_ptr);
+// }
+void pipe_close_page(struct pipe_buffer* buf){
+	if (buf->vmap_ptr == 0)
+		put_page(buf->page);	
+	else
+		alias_vunmap(buf->vmap_ptr);
+}
+
+
 
 static void pipe_lock_nested(struct pipe_inode_info *pipe, int subclass)
 {
@@ -125,6 +138,8 @@ void pipe_double_lock(struct pipe_inode_info *pipe1,
 static void anon_pipe_buf_release(struct pipe_inode_info *pipe,
 				  struct pipe_buffer *buf)
 {
+	//struct page* buf_page = pipe_alias_vmap_to_page(buf);
+	//printk(KERN_INFO "in apbr");
 	struct page *page = buf->page;
 
 	/*
@@ -135,7 +150,9 @@ static void anon_pipe_buf_release(struct pipe_inode_info *pipe,
 	if (page_count(page) == 1 && !pipe->tmp_page)
 		pipe->tmp_page = page;
 	else
-		put_page(page);
+		pipe_close_page(buf);
+	//pipe_alias_page_close(buf, buf_page);
+
 }
 
 static bool anon_pipe_buf_try_steal(struct pipe_inode_info *pipe,
@@ -207,7 +224,8 @@ EXPORT_SYMBOL(generic_pipe_buf_get);
 void generic_pipe_buf_release(struct pipe_inode_info *pipe,
 			      struct pipe_buffer *buf)
 {
-	put_page(buf->page);
+	//printk(KERN_INFO "in gpbf");
+	pipe_close_page(buf);
 }
 EXPORT_SYMBOL(generic_pipe_buf_release);
 
@@ -230,6 +248,7 @@ static inline bool pipe_readable(const struct pipe_inode_info *pipe)
 static ssize_t
 pipe_read(struct kiocb *iocb, struct iov_iter *to)
 {
+	//printk(KERN_INFO "arrived pipe_read ??");
 	size_t total_len = iov_iter_count(to);
 	struct file *filp = iocb->ki_filp;
 	struct pipe_inode_info *pipe = filp->private_data;
@@ -303,8 +322,13 @@ pipe_read(struct kiocb *iocb, struct iov_iter *to)
 					ret = error;
 				break;
 			}
-
-			written = copy_page_to_iter(buf->page, buf->offset, chars, to);
+			//printk(KERN_INFO "changed copy to iter");
+			if(buf->page)
+				written = copy_page_to_iter(buf->page, buf->offset, chars, to);
+			else{
+				written = copy_to_iter(buf->vmap_ptr + buf->offset, chars, to);
+				//written = copy_page_to_iter(alias_vmap_to_page(buf->vmap_ptr), buf->offset, chars, to);
+			}
 			if (unlikely(written < chars)) {
 				if (!ret)
 					ret = -EFAULT;
@@ -848,8 +872,14 @@ void free_pipe_info(struct pipe_inode_info *pipe)
 	if (pipe->watch_queue)
 		put_watch_queue(pipe->watch_queue);
 #endif
-	if (pipe->tmp_page)
-		__free_page(pipe->tmp_page);
+	struct page* tmp = pipe->tmp_page;
+	//this is us. two possible ways to clear
+	if (tmp){
+		if(!is_alias_rmap_empty(tmp))
+			alias_vunmap(get_alias_rmap(tmp));	
+		else
+			__free_page(pipe->tmp_page);	
+	}
 	kfree(pipe->bufs);
 	kfree(pipe);
 }

@@ -52,9 +52,10 @@ struct io_rsrc_node {
 struct io_mapped_ubuf {
 	u64		ubuf;
 	u64		ubuf_end;
-	unsigned int	nr_bvecs;
+	unsigned int	nr_kvecs;
 	unsigned long	acct_pages;
-	struct bio_vec	bvec[] __counted_by(nr_bvecs);
+	// struct bio_vec	bvec[] __counted_by(nr_bvecs);
+	struct kvec kvec[] __counted_by(nr_kvecs);
 };
 
 void io_rsrc_node_ref_zero(struct io_rsrc_node *node);

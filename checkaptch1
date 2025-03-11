@@ -1,0 +1,2981 @@
+WARNING: added, moved or deleted file(s), does MAINTAINERS need updating?
+#2: 
+new file mode 100644
+
+ERROR: trailing whitespace
+#12261: FILE: README.md:5:
++By Nizan Kafman-Raz and Omer Daube  $
+
+ERROR: trailing whitespace
+#12262: FILE: README.md:6:
++Under the guidance of Dr. Nadav Amit and Prof. Dan Tzafrir  $
+
+WARNING: Missing or malformed SPDX-License-Identifier tag in line 1
+#12311: FILE: drivers/iommu/intel/iommu.c:1:
++/// SPDX-License-Identifier: GPL-2.0-only
+
+ERROR: do not initialise globals to 0
+#12341: FILE: drivers/iommu/intel/iommu.c:49:
++int total_rmaps = 0;
+
+WARNING: please, no spaces at the start of a line
+#12351: FILE: drivers/iommu/intel/iommu.c:59:
++    char buf[64];$
+
+WARNING: please, no spaces at the start of a line
+#12352: FILE: drivers/iommu/intel/iommu.c:60:
++    int ret = snprintf(buf, sizeof(buf), "%d\n", total_rmaps);$
+
+WARNING: Missing a blank line after declarations
+#12353: FILE: drivers/iommu/intel/iommu.c:61:
++    int ret = snprintf(buf, sizeof(buf), "%d\n", total_rmaps);
++    return simple_read_from_buffer(buffer, len, offset, buf, ret);
+
+WARNING: please, no spaces at the start of a line
+#12353: FILE: drivers/iommu/intel/iommu.c:61:
++    return simple_read_from_buffer(buffer, len, offset, buf, ret);$
+
+WARNING: line length of 106 exceeds 100 columns
+#12357: FILE: drivers/iommu/intel/iommu.c:65:
++static ssize_t total_rmaps_write(struct file *filp, const char __user *buffer, size_t len, loff_t *offset)
+
+WARNING: please, no spaces at the start of a line
+#12359: FILE: drivers/iommu/intel/iommu.c:67:
++    return 0;$
+
+WARNING: please, no spaces at the start of a line
+#12363: FILE: drivers/iommu/intel/iommu.c:71:
++    .owner = THIS_MODULE,$
+
+WARNING: please, no spaces at the start of a line
+#12364: FILE: drivers/iommu/intel/iommu.c:72:
++    .read = total_rmaps_read,$
+
+WARNING: please, no spaces at the start of a line
+#12365: FILE: drivers/iommu/intel/iommu.c:73:
++    .write = total_rmaps_write,$
+
+WARNING: please, no spaces at the start of a line
+#12372: FILE: drivers/iommu/intel/iommu.c:80:
++    dir_tr = debugfs_create_dir("page_alias", NULL);$
+
+WARNING: please, no spaces at the start of a line
+#12373: FILE: drivers/iommu/intel/iommu.c:81:
++    if (!dir_tr) {$
+
+ERROR: code indent should use tabs where possible
+#12374: FILE: drivers/iommu/intel/iommu.c:82:
++        pr_err("Failed to create debugfs directory for page_alias :(\n");$
+
+WARNING: please, no spaces at the start of a line
+#12374: FILE: drivers/iommu/intel/iommu.c:82:
++        pr_err("Failed to create debugfs directory for page_alias :(\n");$
+
+ERROR: code indent should use tabs where possible
+#12375: FILE: drivers/iommu/intel/iommu.c:83:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#12375: FILE: drivers/iommu/intel/iommu.c:83:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#12376: FILE: drivers/iommu/intel/iommu.c:84:
++    }$
+
+WARNING: please, no spaces at the start of a line
+#12378: FILE: drivers/iommu/intel/iommu.c:86:
++    file_tr = debugfs_create_file("total_rmaps", 0666, dir_tr, NULL, &fops_tr);$
+
+WARNING: Exporting world writable files is usually an error. Consider more restrictive permissions.
+#12378: FILE: drivers/iommu/intel/iommu.c:86:
++    file_tr = debugfs_create_file("total_rmaps", 0666, dir_tr, NULL, &fops_tr);
+
+WARNING: please, no spaces at the start of a line
+#12379: FILE: drivers/iommu/intel/iommu.c:87:
++    if (!file_tr) {$
+
+ERROR: code indent should use tabs where possible
+#12380: FILE: drivers/iommu/intel/iommu.c:88:
++        pr_err("Failed to create debugfs total_rmaps file\n");$
+
+WARNING: please, no spaces at the start of a line
+#12380: FILE: drivers/iommu/intel/iommu.c:88:
++        pr_err("Failed to create debugfs total_rmaps file\n");$
+
+ERROR: code indent should use tabs where possible
+#12381: FILE: drivers/iommu/intel/iommu.c:89:
++        debugfs_remove(dir_tr);$
+
+WARNING: please, no spaces at the start of a line
+#12381: FILE: drivers/iommu/intel/iommu.c:89:
++        debugfs_remove(dir_tr);$
+
+ERROR: code indent should use tabs where possible
+#12382: FILE: drivers/iommu/intel/iommu.c:90:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#12382: FILE: drivers/iommu/intel/iommu.c:90:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#12383: FILE: drivers/iommu/intel/iommu.c:91:
++    }$
+
+WARNING: please, no spaces at the start of a line
+#12386: FILE: drivers/iommu/intel/iommu.c:94:
++    pr_info("page_alias debugfs interface initialized\n");$
+
+WARNING: please, no spaces at the start of a line
+#12387: FILE: drivers/iommu/intel/iommu.c:95:
++    return 0;$
+
+WARNING: please, no spaces at the start of a line
+#12392: FILE: drivers/iommu/intel/iommu.c:100:
++    debugfs_remove(file_tr);$
+
+WARNING: please, no spaces at the start of a line
+#12393: FILE: drivers/iommu/intel/iommu.c:101:
++    debugfs_remove(dir_tr);$
+
+WARNING: please, no spaces at the start of a line
+#12394: FILE: drivers/iommu/intel/iommu.c:102:
++    pr_info("page_alias debugfs interface removed\n");$
+
+ERROR: do not initialise statics to 0
+#12405: FILE: drivers/iommu/intel/iommu.c:113:
++static unsigned long curr_pfn = 0;
+
+ERROR: do not initialise statics to 0
+#12407: FILE: drivers/iommu/intel/iommu.c:115:
++static int sleep_time = 0;
+
+WARNING: please, no spaces at the start of a line
+#12411: FILE: drivers/iommu/intel/iommu.c:119:
++    char buf[64];$
+
+WARNING: please, no spaces at the start of a line
+#12412: FILE: drivers/iommu/intel/iommu.c:120:
++    int ret;$
+
+WARNING: please, no spaces at the start of a line
+#12414: FILE: drivers/iommu/intel/iommu.c:122:
++    ret = snprintf(buf, sizeof(buf), "%d\n", sleep_time);$
+
+WARNING: please, no spaces at the start of a line
+#12415: FILE: drivers/iommu/intel/iommu.c:123:
++    return simple_read_from_buffer(buffer, len, offset, buf, ret);$
+
+WARNING: line length of 105 exceeds 100 columns
+#12418: FILE: drivers/iommu/intel/iommu.c:126:
++static ssize_t sleep_time_write(struct file *filp, const char __user *buffer, size_t len, loff_t *offset)
+
+WARNING: please, no spaces at the start of a line
+#12420: FILE: drivers/iommu/intel/iommu.c:128:
++    char buf[64];$
+
+WARNING: please, no spaces at the start of a line
+#12422: FILE: drivers/iommu/intel/iommu.c:130:
++    if (len > sizeof(buf) - 1)$
+
+ERROR: code indent should use tabs where possible
+#12423: FILE: drivers/iommu/intel/iommu.c:131:
++        return -EINVAL;$
+
+WARNING: please, no spaces at the start of a line
+#12423: FILE: drivers/iommu/intel/iommu.c:131:
++        return -EINVAL;$
+
+WARNING: please, no spaces at the start of a line
+#12425: FILE: drivers/iommu/intel/iommu.c:133:
++    if (copy_from_user(buf, buffer, len))$
+
+ERROR: code indent should use tabs where possible
+#12426: FILE: drivers/iommu/intel/iommu.c:134:
++        return -EFAULT;$
+
+WARNING: please, no spaces at the start of a line
+#12426: FILE: drivers/iommu/intel/iommu.c:134:
++        return -EFAULT;$
+
+WARNING: please, no spaces at the start of a line
+#12428: FILE: drivers/iommu/intel/iommu.c:136:
++    buf[len] = '\0';$
+
+WARNING: please, no spaces at the start of a line
+#12429: FILE: drivers/iommu/intel/iommu.c:137:
++    int res;$
+
+WARNING: Missing a blank line after declarations
+#12430: FILE: drivers/iommu/intel/iommu.c:138:
++    int res;
++    res = kstrtoint(buf, 10, &sleep_time); //char, base, *result
+
+WARNING: please, no spaces at the start of a line
+#12430: FILE: drivers/iommu/intel/iommu.c:138:
++    res = kstrtoint(buf, 10, &sleep_time); //char, base, *result$
+
+WARNING: please, no spaces at the start of a line
+#12431: FILE: drivers/iommu/intel/iommu.c:139:
++    if (res){$
+
+ERROR: space required before the open brace '{'
+#12431: FILE: drivers/iommu/intel/iommu.c:139:
++    if (res){
+
+WARNING: please, no spaces at the start of a line
+#12434: FILE: drivers/iommu/intel/iommu.c:142:
++    }$
+
+WARNING: please, no spaces at the start of a line
+#12436: FILE: drivers/iommu/intel/iommu.c:144:
++    pr_info("New sleep mega time: %d\n", sleep_time);$
+
+WARNING: please, no spaces at the start of a line
+#12437: FILE: drivers/iommu/intel/iommu.c:145:
++    return len;$
+
+WARNING: please, no spaces at the start of a line
+#12441: FILE: drivers/iommu/intel/iommu.c:149:
++    .owner = THIS_MODULE,$
+
+WARNING: please, no spaces at the start of a line
+#12442: FILE: drivers/iommu/intel/iommu.c:150:
++    .read = sleep_time_read,$
+
+WARNING: please, no spaces at the start of a line
+#12443: FILE: drivers/iommu/intel/iommu.c:151:
++    .write = sleep_time_write,$
+
+WARNING: please, no spaces at the start of a line
+#12450: FILE: drivers/iommu/intel/iommu.c:158:
++    dir = debugfs_create_dir("iommu_pinmig", NULL);$
+
+WARNING: please, no spaces at the start of a line
+#12451: FILE: drivers/iommu/intel/iommu.c:159:
++    if (!dir) {$
+
+ERROR: code indent should use tabs where possible
+#12452: FILE: drivers/iommu/intel/iommu.c:160:
++        pr_err("Failed to create debugfs directory for iommu_pinmig :(\n");$
+
+WARNING: please, no spaces at the start of a line
+#12452: FILE: drivers/iommu/intel/iommu.c:160:
++        pr_err("Failed to create debugfs directory for iommu_pinmig :(\n");$
+
+ERROR: code indent should use tabs where possible
+#12453: FILE: drivers/iommu/intel/iommu.c:161:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#12453: FILE: drivers/iommu/intel/iommu.c:161:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#12454: FILE: drivers/iommu/intel/iommu.c:162:
++    }$
+
+WARNING: please, no spaces at the start of a line
+#12456: FILE: drivers/iommu/intel/iommu.c:164:
++    file = debugfs_create_file("sleep_time", 0666, dir, NULL, &fops);$
+
+WARNING: Exporting world writable files is usually an error. Consider more restrictive permissions.
+#12456: FILE: drivers/iommu/intel/iommu.c:164:
++    file = debugfs_create_file("sleep_time", 0666, dir, NULL, &fops);
+
+WARNING: please, no spaces at the start of a line
+#12457: FILE: drivers/iommu/intel/iommu.c:165:
++    if (!file) {$
+
+ERROR: code indent should use tabs where possible
+#12458: FILE: drivers/iommu/intel/iommu.c:166:
++        pr_err("Failed to create debugfs sleep_time file\n");$
+
+WARNING: please, no spaces at the start of a line
+#12458: FILE: drivers/iommu/intel/iommu.c:166:
++        pr_err("Failed to create debugfs sleep_time file\n");$
+
+ERROR: code indent should use tabs where possible
+#12459: FILE: drivers/iommu/intel/iommu.c:167:
++        debugfs_remove(dir);$
+
+WARNING: please, no spaces at the start of a line
+#12459: FILE: drivers/iommu/intel/iommu.c:167:
++        debugfs_remove(dir);$
+
+ERROR: code indent should use tabs where possible
+#12460: FILE: drivers/iommu/intel/iommu.c:168:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#12460: FILE: drivers/iommu/intel/iommu.c:168:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#12461: FILE: drivers/iommu/intel/iommu.c:169:
++    }$
+
+WARNING: please, no spaces at the start of a line
+#12464: FILE: drivers/iommu/intel/iommu.c:172:
++    pr_info("iommu_pinmig debugfs interface initialized\n");$
+
+WARNING: please, no spaces at the start of a line
+#12465: FILE: drivers/iommu/intel/iommu.c:173:
++    return 0;$
+
+WARNING: please, no spaces at the start of a line
+#12470: FILE: drivers/iommu/intel/iommu.c:178:
++    debugfs_remove(file);$
+
+WARNING: please, no spaces at the start of a line
+#12471: FILE: drivers/iommu/intel/iommu.c:179:
++    debugfs_remove(dir);$
+
+WARNING: please, no spaces at the start of a line
+#12472: FILE: drivers/iommu/intel/iommu.c:180:
++    pr_info("iommu_pinmig debugfs interface removed\n");$
+
+WARNING: line length of 122 exceeds 100 columns
+#12508: FILE: drivers/iommu/intel/iommu.c:513:
++			//pr_info("Intel-IOMMU: not forcing on after tboot. This could expose security risk for tboot\n");
+
+ERROR: open brace '{' following function definitions go on the next line
+#12516: FILE: drivers/iommu/intel/iommu.c:790:
++static bool intel_is_migration_supported(struct intel_iommu *iommu, struct dmar_domain *domain){
+
+ERROR: space required before the open brace '{'
+#12516: FILE: drivers/iommu/intel/iommu.c:790:
++static bool intel_is_migration_supported(struct intel_iommu *iommu, struct dmar_domain *domain){
+
+ERROR: trailing whitespace
+#12517: FILE: drivers/iommu/intel/iommu.c:791:
++^I/* If a read-write buffer is used, we would not always see the $
+
+ERROR: trailing whitespace
+#12522: FILE: drivers/iommu/intel/iommu.c:796:
++^Iif (rwbf_quirk || cap_rwbf(iommu->cap)) $
+
+ERROR: trailing whitespace
+#12525: FILE: drivers/iommu/intel/iommu.c:799:
++     ^I/* Require also page-walk coherency to ensure dirty-bit tracking. */ $
+
+ERROR: code indent should use tabs where possible
+#12525: FILE: drivers/iommu/intel/iommu.c:799:
++     ^I/* Require also page-walk coherency to ensure dirty-bit tracking. */ $
+
+WARNING: please, no space before tabs
+#12525: FILE: drivers/iommu/intel/iommu.c:799:
++     ^I/* Require also page-walk coherency to ensure dirty-bit tracking. */ $
+
+WARNING: please, no spaces at the start of a line
+#12525: FILE: drivers/iommu/intel/iommu.c:799:
++     ^I/* Require also page-walk coherency to ensure dirty-bit tracking. */ $
+
+ERROR: trailing whitespace
+#12527: FILE: drivers/iommu/intel/iommu.c:801:
++^I^Ireturn false; $
+
+ERROR: trailing whitespace
+#12529: FILE: drivers/iommu/intel/iommu.c:803:
++^I/* We do need support for dirty-bit tracking. */ $
+
+ERROR: trailing whitespace
+#12530: FILE: drivers/iommu/intel/iommu.c:804:
++^Iif (!domain->use_first_level && !ecap_slads(iommu->ecap)) $
+
+ERROR: trailing whitespace
+#12531: FILE: drivers/iommu/intel/iommu.c:805:
++^I^Ireturn false; $
+
+WARNING: braces {} are not necessary for single statement blocks
+#12547: FILE: drivers/iommu/intel/iommu.c:1328:
++			for (i = 63; i >= 0; i--) {
++				buf[63 - i] = (pte->val & ((uint64_t)1 << i)) ? '1' : '0';
++			}
+
+ERROR: trailing whitespace
+#12552: FILE: drivers/iommu/intel/iommu.c:1333:
++^I^I^Ialias_iommu_free_rmap(phys_pfn);^I^I^I$
+
+ERROR: trailing whitespace
+#12553: FILE: drivers/iommu/intel/iommu.c:1334:
++^I^I^I$
+
+ERROR: trailing whitespace
+#12589: FILE: drivers/iommu/intel/iommu.c:2414:
++^I^I^I$
+
+ERROR: space required before the open brace '{'
+#12601: FILE: drivers/iommu/intel/iommu.c:2448:
++		if(!domain_type_is_si(domain)){
+
+ERROR: space required before the open parenthesis '('
+#12601: FILE: drivers/iommu/intel/iommu.c:2448:
++		if(!domain_type_is_si(domain)){
+
+ERROR: trailing whitespace
+#12641: FILE: drivers/iommu/intel/iommu.c:3979:
++^I// pinmig $
+
+WARNING: Prefer using '"%s...", __func__' to using 'intel_iommu_init', this function's name, in a string
+#12643: FILE: drivers/iommu/intel/iommu.c:3981:
++	pr_info("OMER: once intel_iommu_init\n");
+
+WARNING: Missing a blank line after declarations
+#12645: FILE: drivers/iommu/intel/iommu.c:3983:
++	int retv = iommu_pinmig_debugfs_init();
++	if (retv){
+
+ERROR: space required before the open brace '{'
+#12645: FILE: drivers/iommu/intel/iommu.c:3983:
++	if (retv){
+
+WARNING: braces {} are not necessary for single statement blocks
+#12645: FILE: drivers/iommu/intel/iommu.c:3983:
++	if (retv){
++		pr_info("Calling iommu_pinmig_debugfs_init from intel_iommu_init failed!!!!!!!!!");
++	}
+
+WARNING: Prefer using '"%s...", __func__' to using 'intel_iommu_init', this function's name, in a string
+#12646: FILE: drivers/iommu/intel/iommu.c:3984:
++		pr_info("Calling iommu_pinmig_debugfs_init from intel_iommu_init failed!!!!!!!!!");
+
+ERROR: space required before the open brace '{'
+#12650: FILE: drivers/iommu/intel/iommu.c:3988:
++	if (retv){
+
+WARNING: braces {} are not necessary for single statement blocks
+#12650: FILE: drivers/iommu/intel/iommu.c:3988:
++	if (retv){
++		pr_info("Calling page_alias_debugfs_init from intel_iommu_init failed!!!!!!!!!");
++	}
+
+WARNING: Prefer using '"%s...", __func__' to using 'intel_iommu_init', this function's name, in a string
+#12651: FILE: drivers/iommu/intel/iommu.c:3989:
++		pr_info("Calling page_alias_debugfs_init from intel_iommu_init failed!!!!!!!!!");
+
+ERROR: trailing whitespace
+#12706: FILE: drivers/iommu/intel/iommu.c:4410:
++^I$
+
+WARNING: line length of 116 exceeds 100 columns
+#12714: FILE: drivers/iommu/intel/iommu.c:5012:
++static int intel_migrate_page(struct iommu_domain *domain, unsigned long pfn, struct folio *new_folio, bool prepare)
+
+ERROR: trailing whitespace
+#12720: FILE: drivers/iommu/intel/iommu.c:5018:
++^Istruct dma_pte *ptep, pte, new_pte; $
+
+ERROR: trailing whitespace
+#12721: FILE: drivers/iommu/intel/iommu.c:5019:
++^Ibool dirty, young, first_level; $
+
+WARNING: Missing a blank line after declarations
+#12722: FILE: drivers/iommu/intel/iommu.c:5020:
++	bool dirty, young, first_level; 
++	ptep = pfn_to_dma_pte(dmar_domain, pfn, &level, GFP_ATOMIC);
+
+ERROR: space required before the open brace '{'
+#12723: FILE: drivers/iommu/intel/iommu.c:5021:
++	if (level != 1){
+
+WARNING: braces {} are not necessary for single statement blocks
+#12723: FILE: drivers/iommu/intel/iommu.c:5021:
++	if (level != 1){
++		return -EINVAL;
++	}
+
+ERROR: trailing whitespace
+#12726: FILE: drivers/iommu/intel/iommu.c:5024:
++^Ipte = *ptep; $
+
+WARNING: Missing a blank line after declarations
+#12733: FILE: drivers/iommu/intel/iommu.c:5031:
++	unsigned long y;
++	if (prepare) {
+
+ERROR: space required before the open brace '{'
+#12747: FILE: drivers/iommu/intel/iommu.c:5045:
++	if (young || dirty){
+
+WARNING: braces {} are not necessary for single statement blocks
+#12747: FILE: drivers/iommu/intel/iommu.c:5045:
++	if (young || dirty){
++		return -EBUSY;
++	}
+
+ERROR: trailing whitespace
+#12753: FILE: drivers/iommu/intel/iommu.c:5051:
++^Iunsigned long new_pfn = page_to_pfn(&new_folio->page); $
+
+WARNING: Missing a blank line after declarations
+#12754: FILE: drivers/iommu/intel/iommu.c:5052:
++	unsigned long new_pfn = page_to_pfn(&new_folio->page); 
++	new_pte.val |= (new_pfn << VTD_PAGE_SHIFT);
+
+WARNING: Missing a blank line after declarations
+#12756: FILE: drivers/iommu/intel/iommu.c:5054:
++	struct page *new_page = folio_page(new_folio, 0);
++	__set_page_alias(new_page);
+
+ERROR: trailing whitespace
+#12758: FILE: drivers/iommu/intel/iommu.c:5056:
++^I$
+
+WARNING: line length of 145 exceeds 100 columns
+#12765: FILE: drivers/iommu/intel/iommu.c:5063:
++	/* If the access bit is clean we would not need a TLB flush what does this mean? tlb flush only happens in prepare so it happens anyway*/
+
+ERROR: space required before the open brace '{'
+#12766: FILE: drivers/iommu/intel/iommu.c:5064:
++	if (!try_cmpxchg64(&ptep->val, &pte.val, new_pte.val)){
+
+WARNING: braces {} are not necessary for single statement blocks
+#12766: FILE: drivers/iommu/intel/iommu.c:5064:
++	if (!try_cmpxchg64(&ptep->val, &pte.val, new_pte.val)){
++		return -EPINMIGF;
++	}
+
+ERROR: trailing whitespace
+#12770: FILE: drivers/iommu/intel/iommu.c:5068:
++} $
+
+ERROR: trailing whitespace
+#12792: FILE: drivers/iommu/intel/iommu.h:44:
++#define DMA_SL_PTE_DIRTY^IBIT_ULL(9) $
+
+ERROR: trailing whitespace
+#12813: FILE: drivers/iommu/intel/iommu.h:771:
++static inline u64 dma_pte_young_mask(bool first_level) $
+
+ERROR: trailing whitespace
+#12814: FILE: drivers/iommu/intel/iommu.h:772:
++{ $
+
+ERROR: trailing whitespace
+#12815: FILE: drivers/iommu/intel/iommu.h:773:
++^Ireturn first_level ? DMA_FL_PTE_ACCESS : DMA_SL_PTE_ACCESS; $
+
+ERROR: trailing whitespace
+#12819: FILE: drivers/iommu/intel/iommu.h:777:
++{ $
+
+ERROR: trailing whitespace
+#12825: FILE: drivers/iommu/intel/iommu.h:783:
++^Ipte.val |= dma_pte_young_mask(first_level); $
+
+ERROR: trailing whitespace
+#12829: FILE: drivers/iommu/intel/iommu.h:787:
++static inline u64 dma_pte_dirty_mask(bool first_level) $
+
+ERROR: trailing whitespace
+#12830: FILE: drivers/iommu/intel/iommu.h:788:
++{ $
+
+WARNING: Block comments should align the * on each line
+#12857: FILE: drivers/iommu/intel/pasid.c:281:
++/*
++* Setup the SSADE(Second Stage Access/Dirty bit Enable) field (Bit 9
+
+ERROR: trailing whitespace
+#12860: FILE: drivers/iommu/intel/pasid.c:284:
++static inline void pasid_set_ssade(struct pasid_entry *pe) $
+
+ERROR: do not initialise statics to 0
+#12951: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:55:
++static unsigned long curr_pfn = 0;
+
+ERROR: do not initialise statics to 0
+#12952: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:56:
++static int sleep_time = 0;
+
+WARNING: please, no spaces at the start of a line
+#12958: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:62:
++    char buf[64];$
+
+WARNING: please, no spaces at the start of a line
+#12959: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:63:
++    int ret;$
+
+WARNING: please, no spaces at the start of a line
+#12961: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:65:
++    ret = snprintf(buf, sizeof(buf), "%lu\n", curr_pfn);$
+
+WARNING: please, no spaces at the start of a line
+#12962: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:66:
++    return simple_read_from_buffer(buffer, len, offset, buf, ret);$
+
+WARNING: line length of 106 exceeds 100 columns
+#12965: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:69:
++static ssize_t sleep_time_write2(struct file *filp, const char __user *buffer, size_t len, loff_t *offset)
+
+WARNING: please, no spaces at the start of a line
+#12967: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:71:
++    return 0;$
+
+WARNING: please, no spaces at the start of a line
+#12972: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:76:
++    char buf[64];$
+
+WARNING: please, no spaces at the start of a line
+#12973: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:77:
++    int ret;$
+
+WARNING: please, no spaces at the start of a line
+#12975: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:79:
++    ret = snprintf(buf, sizeof(buf), "%d\n", sleep_time);$
+
+WARNING: please, no spaces at the start of a line
+#12976: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:80:
++    return simple_read_from_buffer(buffer, len, offset, buf, ret);$
+
+WARNING: line length of 106 exceeds 100 columns
+#12979: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:83:
++static ssize_t sleep_time_write1(struct file *filp, const char __user *buffer, size_t len, loff_t *offset)
+
+WARNING: please, no spaces at the start of a line
+#12981: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:85:
++    char buf[64];$
+
+WARNING: please, no spaces at the start of a line
+#12983: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:87:
++    if (len > sizeof(buf) - 1)$
+
+ERROR: code indent should use tabs where possible
+#12984: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:88:
++        return -EINVAL;$
+
+WARNING: please, no spaces at the start of a line
+#12984: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:88:
++        return -EINVAL;$
+
+WARNING: please, no spaces at the start of a line
+#12986: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:90:
++    if (copy_from_user(buf, buffer, len))$
+
+ERROR: code indent should use tabs where possible
+#12987: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:91:
++        return -EFAULT;$
+
+WARNING: please, no spaces at the start of a line
+#12987: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:91:
++        return -EFAULT;$
+
+WARNING: please, no spaces at the start of a line
+#12989: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:93:
++    buf[len] = '\0';$
+
+WARNING: please, no spaces at the start of a line
+#12990: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:94:
++    int res;$
+
+WARNING: Missing a blank line after declarations
+#12991: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:95:
++    int res;
++    res = kstrtoint(buf, 10, &sleep_time); //char, base, *result
+
+WARNING: please, no spaces at the start of a line
+#12991: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:95:
++    res = kstrtoint(buf, 10, &sleep_time); //char, base, *result$
+
+WARNING: please, no spaces at the start of a line
+#12992: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:96:
++    if (res){$
+
+ERROR: space required before the open brace '{'
+#12992: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:96:
++    if (res){
+
+WARNING: please, no spaces at the start of a line
+#12995: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:99:
++    }$
+
+WARNING: please, no spaces at the start of a line
+#12997: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:101:
++    pr_info("New sleep mega time: %d\n", sleep_time);$
+
+WARNING: please, no spaces at the start of a line
+#12998: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:102:
++    return len;$
+
+WARNING: please, no spaces at the start of a line
+#13002: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:106:
++    .owner = THIS_MODULE,$
+
+WARNING: please, no spaces at the start of a line
+#13003: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:107:
++    .read = sleep_time_read1,$
+
+WARNING: please, no spaces at the start of a line
+#13004: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:108:
++    .write = sleep_time_write1,$
+
+WARNING: please, no spaces at the start of a line
+#13008: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:112:
++    .owner = THIS_MODULE,$
+
+WARNING: please, no spaces at the start of a line
+#13009: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:113:
++    .read = sleep_time_read2,$
+
+WARNING: please, no spaces at the start of a line
+#13010: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:114:
++    .write = sleep_time_write2,$
+
+WARNING: please, no spaces at the start of a line
+#13016: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:120:
++    dir = debugfs_create_dir("megasas", NULL);$
+
+WARNING: please, no spaces at the start of a line
+#13017: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:121:
++    if (!dir) {$
+
+ERROR: code indent should use tabs where possible
+#13018: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:122:
++        pr_err("Failed to create debugfs directory for megasas :(\n");$
+
+WARNING: please, no spaces at the start of a line
+#13018: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:122:
++        pr_err("Failed to create debugfs directory for megasas :(\n");$
+
+ERROR: code indent should use tabs where possible
+#13019: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:123:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#13019: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:123:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#13020: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:124:
++    }$
+
+WARNING: please, no spaces at the start of a line
+#13022: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:126:
++    file1 = debugfs_create_file("sleep_time", 0666, dir, NULL, &fops1);$
+
+WARNING: Exporting world writable files is usually an error. Consider more restrictive permissions.
+#13022: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:126:
++    file1 = debugfs_create_file("sleep_time", 0666, dir, NULL, &fops1);
+
+WARNING: please, no spaces at the start of a line
+#13023: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:127:
++    if (!file1) {$
+
+ERROR: code indent should use tabs where possible
+#13024: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:128:
++        pr_err("Failed to create debugfs sleep_time file\n");$
+
+WARNING: please, no spaces at the start of a line
+#13024: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:128:
++        pr_err("Failed to create debugfs sleep_time file\n");$
+
+ERROR: code indent should use tabs where possible
+#13025: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:129:
++        debugfs_remove(dir);$
+
+WARNING: please, no spaces at the start of a line
+#13025: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:129:
++        debugfs_remove(dir);$
+
+ERROR: code indent should use tabs where possible
+#13026: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:130:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#13026: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:130:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#13027: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:131:
++    }$
+
+WARNING: Exporting world writable files is usually an error. Consider more restrictive permissions.
+#13029: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:133:
++	file2 = debugfs_create_file("curr_pfn", 0666, dir, NULL, &fops2);
+
+WARNING: please, no spaces at the start of a line
+#13037: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:141:
++    pr_info("megasas debugfs interface initialized\n");$
+
+WARNING: please, no spaces at the start of a line
+#13038: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:142:
++    return 0;$
+
+WARNING: please, no spaces at the start of a line
+#13043: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:147:
++    debugfs_remove(file1);$
+
+WARNING: please, no spaces at the start of a line
+#13044: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:148:
++    debugfs_remove(file2);$
+
+WARNING: please, no spaces at the start of a line
+#13045: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:149:
++    debugfs_remove(dir);$
+
+WARNING: please, no spaces at the start of a line
+#13046: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:150:
++    pr_info("megasas debugfs interface removed\n");$
+
+WARNING: please, no spaces at the start of a line
+#13064: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1854:
++    struct page *page;$
+
+WARNING: please, no spaces at the start of a line
+#13066: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1856:
++    unsigned long pfn = 0;$
+
+WARNING: suspect code indent for conditional statements (8, 8)
+#13069: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1859:
++	if (scmd)
++    	sg = scsi_sglist(scmd);
+
+ERROR: code indent should use tabs where possible
+#13070: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1860:
++    ^Isg = scsi_sglist(scmd);$
+
+WARNING: please, no space before tabs
+#13070: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1860:
++    ^Isg = scsi_sglist(scmd);$
+
+WARNING: please, no spaces at the start of a line
+#13070: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1860:
++    ^Isg = scsi_sglist(scmd);$
+
+WARNING: suspect code indent for conditional statements (8, 8)
+#13072: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1862:
++	if (sg)
++    	page = sg_page(sg);
+
+ERROR: code indent should use tabs where possible
+#13073: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1863:
++    ^Ipage = sg_page(sg);$
+
+WARNING: please, no space before tabs
+#13073: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1863:
++    ^Ipage = sg_page(sg);$
+
+WARNING: please, no spaces at the start of a line
+#13073: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1863:
++    ^Ipage = sg_page(sg);$
+
+WARNING: suspect code indent for conditional statements (8, 8)
+#13076: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1866:
++	if (page){
++    	pfn = page_to_pfn(page);
+
+ERROR: space required before the open brace '{'
+#13076: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1866:
++	if (page){
+
+ERROR: code indent should use tabs where possible
+#13077: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1867:
++    ^Ipfn = page_to_pfn(page);$
+
+WARNING: please, no space before tabs
+#13077: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1867:
++    ^Ipfn = page_to_pfn(page);$
+
+WARNING: please, no spaces at the start of a line
+#13077: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1867:
++    ^Ipfn = page_to_pfn(page);$
+
+WARNING: Missing a blank line after declarations
+#13089: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1893:
++	struct timespec64 ts;
++	ktime_get_real_ts64(&ts);
+
+WARNING: line length of 125 exceeds 100 columns
+#13090: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1894:
++	trace_printk("MEGASAS: Current time before moving the head: %lld.%09ld seconds\n", (long long)ts.tv_sec, ts.tv_nsec);
+
+WARNING: Do not use trace_printk() in production code (this can be ignored if built only with a debug config option)
+#13090: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1894:
++	trace_printk("MEGASAS: Current time before moving the head: %lld.%09ld seconds\n", (long long)ts.tv_sec, ts.tv_nsec);
+
+WARNING: Do not use trace_printk() in production code (this can be ignored if built only with a debug config option)
+#13091: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1895:
++	trace_printk("MEGASAS: pfn = %lu\n", pfn);
+
+WARNING: line length of 124 exceeds 100 columns
+#13100: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1904:
++	trace_printk("MEGASAS: Current time after moving the head: %lld.%09ld seconds\n", (long long)ts.tv_sec, ts.tv_nsec);
+
+WARNING: Do not use trace_printk() in production code (this can be ignored if built only with a debug config option)
+#13100: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1904:
++	trace_printk("MEGASAS: Current time after moving the head: %lld.%09ld seconds\n", (long long)ts.tv_sec, ts.tv_nsec);
+
+ERROR: trailing whitespace
+#13101: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:1905:
++^I$
+
+WARNING: Missing a blank line after declarations
+#13112: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:9129:
++	int ret, ret2;
++	ret = megasas_debugfs_init();
+
+ERROR: trailing whitespace
+#13113: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:9130:
++^Iret2 = megasas_fusion_debugfs_init(); $
+
+ERROR: space required before the open brace '{'
+#13114: FILE: drivers/scsi/megaraid/megaraid_sas_base.c:9131:
++	if (ret || ret2){
+
+ERROR: do not initialise statics to 0
+#13149: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:52:
++static unsigned long curr_pfn = 0;
+
+ERROR: do not initialise statics to 0
+#13150: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:53:
++static int sleep_time = 0;
+
+WARNING: please, no spaces at the start of a line
+#13156: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:59:
++    char buf[64];$
+
+WARNING: please, no spaces at the start of a line
+#13157: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:60:
++    int ret;$
+
+WARNING: please, no spaces at the start of a line
+#13159: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:62:
++    ret = snprintf(buf, sizeof(buf), "%lu\n", curr_pfn);$
+
+WARNING: please, no spaces at the start of a line
+#13160: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:63:
++    return simple_read_from_buffer(buffer, len, offset, buf, ret);$
+
+WARNING: line length of 106 exceeds 100 columns
+#13163: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:66:
++static ssize_t sleep_time_write2(struct file *filp, const char __user *buffer, size_t len, loff_t *offset)
+
+WARNING: please, no spaces at the start of a line
+#13165: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:68:
++    return 0;$
+
+WARNING: please, no spaces at the start of a line
+#13170: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:73:
++    char buf[64];$
+
+WARNING: please, no spaces at the start of a line
+#13171: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:74:
++    int ret;$
+
+WARNING: please, no spaces at the start of a line
+#13173: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:76:
++    ret = snprintf(buf, sizeof(buf), "%d\n", sleep_time);$
+
+WARNING: please, no spaces at the start of a line
+#13174: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:77:
++    return simple_read_from_buffer(buffer, len, offset, buf, ret);$
+
+WARNING: line length of 106 exceeds 100 columns
+#13177: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:80:
++static ssize_t sleep_time_write1(struct file *filp, const char __user *buffer, size_t len, loff_t *offset)
+
+WARNING: please, no spaces at the start of a line
+#13179: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:82:
++    char buf[64];$
+
+WARNING: please, no spaces at the start of a line
+#13181: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:84:
++    if (len > sizeof(buf) - 1)$
+
+ERROR: code indent should use tabs where possible
+#13182: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:85:
++        return -EINVAL;$
+
+WARNING: please, no spaces at the start of a line
+#13182: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:85:
++        return -EINVAL;$
+
+WARNING: please, no spaces at the start of a line
+#13184: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:87:
++    if (copy_from_user(buf, buffer, len))$
+
+ERROR: code indent should use tabs where possible
+#13185: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:88:
++        return -EFAULT;$
+
+WARNING: please, no spaces at the start of a line
+#13185: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:88:
++        return -EFAULT;$
+
+WARNING: please, no spaces at the start of a line
+#13187: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:90:
++    buf[len] = '\0';$
+
+WARNING: please, no spaces at the start of a line
+#13188: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:91:
++    int res;$
+
+WARNING: Missing a blank line after declarations
+#13189: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:92:
++    int res;
++    res = kstrtoint(buf, 10, &sleep_time); //char, base, *result
+
+WARNING: please, no spaces at the start of a line
+#13189: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:92:
++    res = kstrtoint(buf, 10, &sleep_time); //char, base, *result$
+
+WARNING: please, no spaces at the start of a line
+#13190: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:93:
++    if (res){$
+
+ERROR: space required before the open brace '{'
+#13190: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:93:
++    if (res){
+
+WARNING: please, no spaces at the start of a line
+#13193: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:96:
++    }$
+
+WARNING: please, no spaces at the start of a line
+#13195: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:98:
++    pr_info("New sleep mega time: %d\n", sleep_time);$
+
+WARNING: please, no spaces at the start of a line
+#13196: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:99:
++    return len;$
+
+WARNING: please, no spaces at the start of a line
+#13200: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:103:
++    .owner = THIS_MODULE,$
+
+WARNING: please, no spaces at the start of a line
+#13201: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:104:
++    .read = sleep_time_read1,$
+
+WARNING: please, no spaces at the start of a line
+#13202: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:105:
++    .write = sleep_time_write1,$
+
+WARNING: please, no spaces at the start of a line
+#13206: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:109:
++    .owner = THIS_MODULE,$
+
+WARNING: please, no spaces at the start of a line
+#13207: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:110:
++    .read = sleep_time_read2,$
+
+WARNING: please, no spaces at the start of a line
+#13208: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:111:
++    .write = sleep_time_write2,$
+
+WARNING: please, no spaces at the start of a line
+#13214: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:117:
++    dir = debugfs_create_dir("megasas_fusion", NULL);$
+
+WARNING: please, no spaces at the start of a line
+#13215: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:118:
++    if (!dir) {$
+
+ERROR: code indent should use tabs where possible
+#13216: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:119:
++        pr_err("Failed to create debugfs directory for megasas_fusion :(\n");$
+
+WARNING: please, no spaces at the start of a line
+#13216: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:119:
++        pr_err("Failed to create debugfs directory for megasas_fusion :(\n");$
+
+ERROR: code indent should use tabs where possible
+#13217: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:120:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#13217: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:120:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#13218: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:121:
++    }$
+
+WARNING: please, no spaces at the start of a line
+#13220: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:123:
++    file1 = debugfs_create_file("sleep_time", 0666, dir, NULL, &fops1);$
+
+WARNING: Exporting world writable files is usually an error. Consider more restrictive permissions.
+#13220: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:123:
++    file1 = debugfs_create_file("sleep_time", 0666, dir, NULL, &fops1);
+
+WARNING: please, no spaces at the start of a line
+#13221: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:124:
++    if (!file1) {$
+
+ERROR: code indent should use tabs where possible
+#13222: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:125:
++        pr_err("Failed to create debugfs sleep_time file\n");$
+
+WARNING: please, no spaces at the start of a line
+#13222: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:125:
++        pr_err("Failed to create debugfs sleep_time file\n");$
+
+ERROR: code indent should use tabs where possible
+#13223: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:126:
++        debugfs_remove(dir);$
+
+WARNING: please, no spaces at the start of a line
+#13223: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:126:
++        debugfs_remove(dir);$
+
+ERROR: code indent should use tabs where possible
+#13224: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:127:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#13224: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:127:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#13225: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:128:
++    }$
+
+WARNING: Exporting world writable files is usually an error. Consider more restrictive permissions.
+#13227: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:130:
++	file2 = debugfs_create_file("curr_pfn", 0666, dir, NULL, &fops2);
+
+WARNING: please, no spaces at the start of a line
+#13235: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:138:
++    pr_info("megasas_fusion debugfs interface initialized\n");$
+
+WARNING: please, no spaces at the start of a line
+#13236: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:139:
++    return 0;$
+
+WARNING: please, no spaces at the start of a line
+#13241: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:144:
++    debugfs_remove(file1);$
+
+WARNING: please, no spaces at the start of a line
+#13242: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:145:
++    debugfs_remove(file2);$
+
+WARNING: please, no spaces at the start of a line
+#13243: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:146:
++    debugfs_remove(dir);$
+
+WARNING: please, no spaces at the start of a line
+#13244: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:147:
++    pr_info("megasas_fusion debugfs interface removed\n");$
+
+WARNING: please, no spaces at the start of a line
+#13263: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3474:
++    struct page *page;$
+
+WARNING: please, no spaces at the start of a line
+#13265: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3476:
++    unsigned long pfn = 0;$
+
+WARNING: suspect code indent for conditional statements (8, 8)
+#13268: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3479:
++	if (scmd)
++    	sg = scsi_sglist(scmd);
+
+ERROR: code indent should use tabs where possible
+#13269: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3480:
++    ^Isg = scsi_sglist(scmd);$
+
+WARNING: please, no space before tabs
+#13269: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3480:
++    ^Isg = scsi_sglist(scmd);$
+
+WARNING: please, no spaces at the start of a line
+#13269: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3480:
++    ^Isg = scsi_sglist(scmd);$
+
+WARNING: suspect code indent for conditional statements (8, 8)
+#13271: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3482:
++	if (sg)
++    	page = sg_page(sg);
+
+ERROR: code indent should use tabs where possible
+#13272: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3483:
++    ^Ipage = sg_page(sg);$
+
+WARNING: please, no space before tabs
+#13272: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3483:
++    ^Ipage = sg_page(sg);$
+
+WARNING: please, no spaces at the start of a line
+#13272: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3483:
++    ^Ipage = sg_page(sg);$
+
+WARNING: suspect code indent for conditional statements (8, 8)
+#13275: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3486:
++	if (page){
++    	pfn = page_to_pfn(page);
+
+ERROR: space required before the open brace '{'
+#13275: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3486:
++	if (page){
+
+ERROR: code indent should use tabs where possible
+#13276: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3487:
++    ^Ipfn = page_to_pfn(page);$
+
+WARNING: please, no space before tabs
+#13276: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3487:
++    ^Ipfn = page_to_pfn(page);$
+
+WARNING: please, no spaces at the start of a line
+#13276: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3487:
++    ^Ipfn = page_to_pfn(page);$
+
+WARNING: Missing a blank line after declarations
+#13292: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3560:
++	struct timespec64 ts;
++	ktime_get_real_ts64(&ts);
+
+WARNING: line length of 132 exceeds 100 columns
+#13293: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3561:
++	trace_printk("MEGASAS FUSION: Current time before moving the head: %lld.%09ld seconds\n", (long long)ts.tv_sec, ts.tv_nsec);
+
+WARNING: Do not use trace_printk() in production code (this can be ignored if built only with a debug config option)
+#13293: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3561:
++	trace_printk("MEGASAS FUSION: Current time before moving the head: %lld.%09ld seconds\n", (long long)ts.tv_sec, ts.tv_nsec);
+
+WARNING: Do not use trace_printk() in production code (this can be ignored if built only with a debug config option)
+#13294: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3562:
++	trace_printk("MEGASAS FUSION: pfn = %lu\n", pfn);
+
+WARNING: line length of 131 exceeds 100 columns
+#13303: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3571:
++	trace_printk("MEGASAS FUSION: Current time after moving the head: %lld.%09ld seconds\n", (long long)ts.tv_sec, ts.tv_nsec);
+
+WARNING: Do not use trace_printk() in production code (this can be ignored if built only with a debug config option)
+#13303: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3571:
++	trace_printk("MEGASAS FUSION: Current time after moving the head: %lld.%09ld seconds\n", (long long)ts.tv_sec, ts.tv_nsec);
+
+ERROR: trailing whitespace
+#13304: FILE: drivers/scsi/megaraid/megaraid_sas_fusion.c:3572:
++^I$
+
+ERROR: trailing whitespace
+#13334: FILE: drivers/virtio/virtio_mmio.c:863:
++^I$
+
+WARNING: Missing a blank line after declarations
+#13337: FILE: drivers/virtio/virtio_mmio.c:866:
++	int ret;
++	ret = virtio_ring_debugfs_init();
+
+ERROR: space required before the open brace '{'
+#13338: FILE: drivers/virtio/virtio_mmio.c:867:
++	if (ret){
+
+ERROR: do not initialise statics to 0
+#13383: FILE: drivers/virtio/virtio_ring.c:81:
++static int sleep_time = 0;
+
+WARNING: please, no spaces at the start of a line
+#13388: FILE: drivers/virtio/virtio_ring.c:86:
++    char buf[64];$
+
+WARNING: please, no spaces at the start of a line
+#13389: FILE: drivers/virtio/virtio_ring.c:87:
++    int ret;$
+
+WARNING: please, no spaces at the start of a line
+#13391: FILE: drivers/virtio/virtio_ring.c:89:
++    ret = snprintf(buf, sizeof(buf), "%d\n", sleep_time);$
+
+WARNING: please, no spaces at the start of a line
+#13392: FILE: drivers/virtio/virtio_ring.c:90:
++    return simple_read_from_buffer(buffer, len, offset, buf, ret);$
+
+WARNING: line length of 105 exceeds 100 columns
+#13395: FILE: drivers/virtio/virtio_ring.c:93:
++static ssize_t sleep_time_write(struct file *filp, const char __user *buffer, size_t len, loff_t *offset)
+
+WARNING: please, no spaces at the start of a line
+#13397: FILE: drivers/virtio/virtio_ring.c:95:
++    char buf[64];$
+
+WARNING: please, no spaces at the start of a line
+#13399: FILE: drivers/virtio/virtio_ring.c:97:
++    if (len > sizeof(buf) - 1)$
+
+ERROR: code indent should use tabs where possible
+#13400: FILE: drivers/virtio/virtio_ring.c:98:
++        return -EINVAL;$
+
+WARNING: please, no spaces at the start of a line
+#13400: FILE: drivers/virtio/virtio_ring.c:98:
++        return -EINVAL;$
+
+WARNING: please, no spaces at the start of a line
+#13402: FILE: drivers/virtio/virtio_ring.c:100:
++    if (copy_from_user(buf, buffer, len))$
+
+ERROR: code indent should use tabs where possible
+#13403: FILE: drivers/virtio/virtio_ring.c:101:
++        return -EFAULT;$
+
+WARNING: please, no spaces at the start of a line
+#13403: FILE: drivers/virtio/virtio_ring.c:101:
++        return -EFAULT;$
+
+WARNING: please, no spaces at the start of a line
+#13405: FILE: drivers/virtio/virtio_ring.c:103:
++    buf[len] = '\0';$
+
+WARNING: please, no spaces at the start of a line
+#13406: FILE: drivers/virtio/virtio_ring.c:104:
++    int res;$
+
+WARNING: Missing a blank line after declarations
+#13407: FILE: drivers/virtio/virtio_ring.c:105:
++    int res;
++    res = kstrtoint(buf, 10, &sleep_time); //char, base, *result
+
+WARNING: please, no spaces at the start of a line
+#13407: FILE: drivers/virtio/virtio_ring.c:105:
++    res = kstrtoint(buf, 10, &sleep_time); //char, base, *result$
+
+WARNING: please, no spaces at the start of a line
+#13408: FILE: drivers/virtio/virtio_ring.c:106:
++    if (res){$
+
+ERROR: space required before the open brace '{'
+#13408: FILE: drivers/virtio/virtio_ring.c:106:
++    if (res){
+
+WARNING: please, no spaces at the start of a line
+#13411: FILE: drivers/virtio/virtio_ring.c:109:
++    }$
+
+WARNING: please, no spaces at the start of a line
+#13413: FILE: drivers/virtio/virtio_ring.c:111:
++    pr_info("New sleep time: %d\n", sleep_time);$
+
+WARNING: please, no spaces at the start of a line
+#13414: FILE: drivers/virtio/virtio_ring.c:112:
++    return len;$
+
+WARNING: please, no spaces at the start of a line
+#13418: FILE: drivers/virtio/virtio_ring.c:116:
++    .owner = THIS_MODULE,$
+
+WARNING: please, no spaces at the start of a line
+#13419: FILE: drivers/virtio/virtio_ring.c:117:
++    .read = sleep_time_read,$
+
+WARNING: please, no spaces at the start of a line
+#13420: FILE: drivers/virtio/virtio_ring.c:118:
++    .write = sleep_time_write,$
+
+WARNING: please, no spaces at the start of a line
+#13426: FILE: drivers/virtio/virtio_ring.c:124:
++    dir = debugfs_create_dir("virtio_ring", NULL);$
+
+WARNING: please, no spaces at the start of a line
+#13427: FILE: drivers/virtio/virtio_ring.c:125:
++    if (!dir) {$
+
+ERROR: code indent should use tabs where possible
+#13428: FILE: drivers/virtio/virtio_ring.c:126:
++        pr_err("Failed to create debugfs directory for virtio :(\n");$
+
+WARNING: please, no spaces at the start of a line
+#13428: FILE: drivers/virtio/virtio_ring.c:126:
++        pr_err("Failed to create debugfs directory for virtio :(\n");$
+
+ERROR: code indent should use tabs where possible
+#13429: FILE: drivers/virtio/virtio_ring.c:127:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#13429: FILE: drivers/virtio/virtio_ring.c:127:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#13430: FILE: drivers/virtio/virtio_ring.c:128:
++    }$
+
+WARNING: please, no spaces at the start of a line
+#13432: FILE: drivers/virtio/virtio_ring.c:130:
++    file = debugfs_create_file("sleep_time", 0666, dir, NULL, &fops);$
+
+WARNING: Exporting world writable files is usually an error. Consider more restrictive permissions.
+#13432: FILE: drivers/virtio/virtio_ring.c:130:
++    file = debugfs_create_file("sleep_time", 0666, dir, NULL, &fops);
+
+WARNING: please, no spaces at the start of a line
+#13433: FILE: drivers/virtio/virtio_ring.c:131:
++    if (!file) {$
+
+ERROR: code indent should use tabs where possible
+#13434: FILE: drivers/virtio/virtio_ring.c:132:
++        pr_err("Failed to create debugfs sleep_time file\n");$
+
+WARNING: please, no spaces at the start of a line
+#13434: FILE: drivers/virtio/virtio_ring.c:132:
++        pr_err("Failed to create debugfs sleep_time file\n");$
+
+ERROR: code indent should use tabs where possible
+#13435: FILE: drivers/virtio/virtio_ring.c:133:
++        debugfs_remove(dir);$
+
+WARNING: please, no spaces at the start of a line
+#13435: FILE: drivers/virtio/virtio_ring.c:133:
++        debugfs_remove(dir);$
+
+ERROR: code indent should use tabs where possible
+#13436: FILE: drivers/virtio/virtio_ring.c:134:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#13436: FILE: drivers/virtio/virtio_ring.c:134:
++        return -ENOMEM;$
+
+WARNING: please, no spaces at the start of a line
+#13437: FILE: drivers/virtio/virtio_ring.c:135:
++    }$
+
+WARNING: please, no spaces at the start of a line
+#13439: FILE: drivers/virtio/virtio_ring.c:137:
++    pr_info("virtio_ring debugfs interface initialized\n");$
+
+WARNING: please, no spaces at the start of a line
+#13440: FILE: drivers/virtio/virtio_ring.c:138:
++    return 0;$
+
+WARNING: please, no spaces at the start of a line
+#13445: FILE: drivers/virtio/virtio_ring.c:143:
++    debugfs_remove(file);$
+
+WARNING: please, no spaces at the start of a line
+#13446: FILE: drivers/virtio/virtio_ring.c:144:
++    debugfs_remove(dir);$
+
+WARNING: please, no spaces at the start of a line
+#13447: FILE: drivers/virtio/virtio_ring.c:145:
++    pr_info("virtio_ring debugfs interface removed\n");$
+
+ERROR: trailing whitespace
+#13462: FILE: drivers/virtio/virtio_ring.c:452:
++^I^I^I    $
+
+WARNING: Missing a blank line after declarations
+#13464: FILE: drivers/virtio/virtio_ring.c:454:
++	struct timespec64 ts;
++	ktime_get_real_ts64(&ts);
+
+WARNING: line length of 106 exceeds 100 columns
+#13465: FILE: drivers/virtio/virtio_ring.c:455:
++	trace_printk("Current time dma_map_page: %lld.%09ld seconds\n", (long long)ts.tv_sec, ts.tv_nsec);
+
+WARNING: Do not use trace_printk() in production code (this can be ignored if built only with a debug config option)
+#13465: FILE: drivers/virtio/virtio_ring.c:455:
++	trace_printk("Current time dma_map_page: %lld.%09ld seconds\n", (long long)ts.tv_sec, ts.tv_nsec);
+
+ERROR: trailing whitespace
+#13474: FILE: drivers/virtio/virtio_ring.c:482:
++^I$
+
+WARNING: Missing a blank line after declarations
+#13485: FILE: drivers/virtio/virtio_ring.c:765:
++	struct timespec64 ts;
++	ktime_get_real_ts64(&ts);
+
+WARNING: line length of 109 exceeds 100 columns
+#13486: FILE: drivers/virtio/virtio_ring.c:766:
++	trace_printk("Current time moving the head: %lld.%09ld seconds\n", (long long)ts.tv_sec, ts.tv_nsec);
+
+WARNING: Do not use trace_printk() in production code (this can be ignored if built only with a debug config option)
+#13486: FILE: drivers/virtio/virtio_ring.c:766:
++	trace_printk("Current time moving the head: %lld.%09ld seconds\n", (long long)ts.tv_sec, ts.tv_nsec);
+
+WARNING: Missing or malformed SPDX-License-Identifier tag in line 1
+#13497: FILE: filter_trace_probe.sh:1:
++pci_probe_funcs=(
+
+WARNING: please, no space before tabs
+#13555: FILE: fs/pipe.c:79:
++// ^Iif (buf->vmap_ptr == 0)$
+
+WARNING: please, no space before tabs
+#13556: FILE: fs/pipe.c:80:
++// ^I^Ireturn buf->page;$
+
+WARNING: please, no space before tabs
+#13557: FILE: fs/pipe.c:81:
++// ^Ireturn alias_vmap_to_page(buf->vmap_ptr);$
+
+ERROR: "foo* bar" should be "foo *bar"
+#13559: FILE: fs/pipe.c:83:
++void pipe_close_page(struct pipe_buffer* buf){
+
+ERROR: open brace '{' following function definitions go on the next line
+#13559: FILE: fs/pipe.c:83:
++void pipe_close_page(struct pipe_buffer* buf){
+
+ERROR: space required before the open brace '{'
+#13559: FILE: fs/pipe.c:83:
++void pipe_close_page(struct pipe_buffer* buf){
+
+ERROR: trailing whitespace
+#13561: FILE: fs/pipe.c:85:
++^I^Iput_page(buf->page);^I$
+
+ERROR: space required before the open parenthesis '('
+#13615: FILE: fs/pipe.c:326:
++			if(buf->page)
+
+ERROR: space required before the open brace '{'
+#13617: FILE: fs/pipe.c:328:
++			else{
+
+WARNING: line length of 121 exceeds 100 columns
+#13619: FILE: fs/pipe.c:330:
++				//written = copy_page_to_iter(alias_vmap_to_page(buf->vmap_ptr), buf->offset, chars, to);
+
+ERROR: "foo* bar" should be "foo *bar"
+#13630: FILE: fs/pipe.c:875:
++	struct page* tmp = pipe->tmp_page;
+
+ERROR: space required before the open brace '{'
+#13632: FILE: fs/pipe.c:877:
++	if (tmp){
+
+ERROR: space required before the open parenthesis '('
+#13633: FILE: fs/pipe.c:878:
++		if(!is_alias_rmap_empty(tmp))
+
+ERROR: trailing whitespace
+#13634: FILE: fs/pipe.c:879:
++^I^I^Ialias_vunmap(get_alias_rmap(tmp));^I$
+
+ERROR: trailing whitespace
+#13636: FILE: fs/pipe.c:881:
++^I^I^I__free_page(pipe->tmp_page);^I$
+
+WARNING: line length of 142 exceeds 100 columns
+#13692: FILE: fs/splice.c:66:
++struct page *splice_alias_vmap_to_page(struct pipe_buffer *buf) //this is how u get real page - depends on wheterr it was created by us or not
+
+WARNING: ENOTSUPP is not a SUSV4 error code, prefer EOPNOTSUPP
+#14248: FILE: include/linux/errno.h:26:
++#define ENOTSUPP 524 /* Operation is not supported */
+
+WARNING: line length of 115 exceeds 100 columns
+#14447: FILE: include/linux/iommu.h:348:
++	int (*migrate_page)(struct iommu_domain *domain, unsigned long pfn, struct folio *new_folio, bool prepare);
+
+ERROR: trailing whitespace
+#14945: FILE: include/linux/migrate.h:83:
++^I^Istruct folio *newfolio, struct folio *folio, int extra_count, $
+
+ERROR: trailing whitespace
+#14966: FILE: include/linux/mm.h:1249:
++^I$
+
+WARNING: please, no space before tabs
+#14975: FILE: include/linux/mm.h:1924:
++^I// ^Ipr_info("i was right");$
+
+ERROR: trailing whitespace
+#14984: FILE: include/linux/mm.h:1937:
++^I$
+
+WARNING: Missing or malformed SPDX-License-Identifier tag in line 1
+#14994: FILE: include/linux/page_alias.h:1:
++#ifndef __LINUX_PAGE_ALIAS_H
+
+WARNING: line length of 105 exceeds 100 columns
+#15015: FILE: include/linux/page_alias.h:22:
++void alias_iommu_create_rmap(struct iommu_domain *domain, unsigned long phys_pfn, unsigned long iov_pfn);
+
+ERROR: space prohibited after that open parenthesis '('
+#15087: FILE: include/trace/events/migrate.h:144:
++		__field(	unsigned long,		pfn)
+
+ERROR: space required before the open brace '{'
+#15163: FILE: io_uring/rsrc.c:142:
++		for (i = 0; i < imu->nr_kvecs; i++){
+
+WARNING: Unnecessary ftrace-like logging - prefer using ftrace
+#15174: FILE: io_uring/rsrc.c:675:
++	pr_info("in %s", __func__);
+
+WARNING: Unnecessary ftrace-like logging - prefer using ftrace
+#15182: FILE: io_uring/rsrc.c:706:
++	pr_info("in %s", __func__);
+
+ERROR: do not initialise globals to 0
+#15387: FILE: mm/migrate.c:73:
++int count_migrate_pages_batch = 0;
+
+ERROR: space required before the open brace '{'
+#15500: FILE: mm/migrate.c:441:
++			if (dma_pinned && !kernel_pinned){
+
+WARNING: braces {} are not necessary for any arm of this statement
+#15500: FILE: mm/migrate.c:441:
++			if (dma_pinned && !kernel_pinned){
+[...]
++			} else {
+[...]
+
+ERROR: trailing whitespace
+#15562: FILE: mm/migrate.c:691:
++^Ifolio_put(newfolio); $
+
+WARNING: Missing a blank line after declarations
+#15571: FILE: mm/migrate.c:700:
++	pte_t curr_pte;
++	flush_tlb_kernel_range((unsigned long)vptr, (unsigned long)vptr + PAGE_SIZE);
+
+ERROR: trailing whitespace
+#15589: FILE: mm/migrate.c:718:
++^Ipinned = is_alias_rmap_empty(curr_page); $
+
+ERROR: trailing whitespace
+#15595: FILE: mm/migrate.c:724:
++^Ivptr = get_alias_rmap(curr_page); $
+
+ERROR: trailing whitespace
+#15608: FILE: mm/migrate.c:737:
++^I^Ireturn -EPINMIGF; $
+
+ERROR: trailing whitespace
+#15609: FILE: mm/migrate.c:738:
++^I$
+
+WARNING: Missing a blank line after declarations
+#15624: FILE: mm/migrate.c:753:
++	int pinned, dma_pinned, kernel_pinned;
++	dma_pinned = is_alias_dma_page(page);
+
+ERROR: trailing whitespace
+#15629: FILE: mm/migrate.c:758:
++^I^Iif (dma_pinned) $
+
+ERROR: space required before the open brace '{'
+#15636: FILE: mm/migrate.c:765:
++		if (dma_pinned){
+
+ERROR: space required before the open brace '{'
+#15637: FILE: mm/migrate.c:766:
++			if (call_dma_migrate_page(page, false, newfolio) < 0){
+
+WARNING: braces {} are not necessary for single statement blocks
+#15637: FILE: mm/migrate.c:766:
++			if (call_dma_migrate_page(page, false, newfolio) < 0){
++				return -EPINMIGF;
++			}
+
+ERROR: space required before the open brace '{'
+#15641: FILE: mm/migrate.c:770:
++		if (kernel_pinned){
+
+WARNING: line length of 115 exceeds 100 columns
+#15642: FILE: mm/migrate.c:771:
++			if (kernel_migrate_pinned_page_commit(newfolio, folio, dma_pinned) != MIGRATEPAGE_SUCCESS){
+
+ERROR: space required before the open brace '{'
+#15642: FILE: mm/migrate.c:771:
++			if (kernel_migrate_pinned_page_commit(newfolio, folio, dma_pinned) != MIGRATEPAGE_SUCCESS){
+
+WARNING: braces {} are not necessary for single statement blocks
+#15642: FILE: mm/migrate.c:771:
++			if (kernel_migrate_pinned_page_commit(newfolio, folio, dma_pinned) != MIGRATEPAGE_SUCCESS){
++				return -EPINMIGF;
++			}
+
+WARNING: Missing a blank line after declarations
+#15668: FILE: mm/migrate.c:795:
++	struct page *page = folio_page(src, 0);
++	pinned = (!is_alias_rmap_empty(page));
+
+ERROR: space required before the open brace '{'
+#15669: FILE: mm/migrate.c:796:
++	if (!allow_pinmig && pinned){
+
+WARNING: braces {} are not necessary for single statement blocks
+#15669: FILE: mm/migrate.c:796:
++	if (!allow_pinmig && pinned){
++		return -EPINMIGF;
++	}
+
+WARNING: Do not crash the kernel unless it is absolutely unavoidable--use WARN_ON_ONCE() plus recovery code (if feasible) instead of BUG() or variants
+#15672: FILE: mm/migrate.c:799:
++	BUG_ON(folio_test_writeback(src)); /* Writeback must be complete */
+
+WARNING: Missing a blank line after declarations
+#15675: FILE: mm/migrate.c:802:
++	struct address_space *save_mapping = NULL;
++	rc = folio_migrate_mapping(mapping, dst, src, extra_count, save_index, save_mapping);
+
+ERROR: space required before the open brace '{'
+#15683: FILE: mm/migrate.c:808:
++	if (mode != MIGRATE_SYNC_NO_COPY){
+
+WARNING: braces {} are not necessary for any arm of this statement
+#15683: FILE: mm/migrate.c:808:
++	if (mode != MIGRATE_SYNC_NO_COPY){
+[...]
+ 	else
+[...]
+
+WARNING: braces {} are not necessary for single statement blocks
+#15731: FILE: mm/migrate.c:884:
++	if (!head) {
+ 		return migrate_folio(mapping, dst, src, mode);
++	}
+
+WARNING: line length of 166 exceeds 100 columns
+#15743: FILE: mm/migrate.c:894:
++		if (dma_pinned && !kernel_pinned) {//if dma pinned, we can ignore the refcount because we dont update it still. if kernel pinned, we need to check it.
+
+ERROR: trailing whitespace
+#15747: FILE: mm/migrate.c:898:
++^I^I}^I^I$
+
+WARNING: Missing a blank line after declarations
+#15760: FILE: mm/migrate.c:932:
++	struct address_space *save_mapping = NULL;
++	rc = folio_migrate_mapping(mapping, dst, src, 0, save_index,
+
+WARNING: braces {} are not necessary for single statement blocks
+#15775: FILE: mm/migrate.c:950:
++	if (rc != MIGRATEPAGE_SUCCESS) {
++		clean_folio_migrate_mapping(dst, src, save_index, save_mapping);
++	}
+
+WARNING: Missing a blank line after declarations
+#15817: FILE: mm/migrate.c:1017:
++	struct address_space *save_mapping = NULL;
++	ret = folio_migrate_mapping(mapping, dst, src, 0, save_index,
+
+ERROR: space required before the open brace '{'
+#15955: FILE: mm/migrate.c:1229:
++	if (anon_vma){
+
+WARNING: braces {} are not necessary for single statement blocks
+#15955: FILE: mm/migrate.c:1229:
++	if (anon_vma){
+ 		put_anon_vma(anon_vma);
++        }
+
+ERROR: code indent should use tabs where possible
+#15957: FILE: mm/migrate.c:1231:
++        }$
+
+WARNING: please, no spaces at the start of a line
+#15957: FILE: mm/migrate.c:1231:
++        }$
+
+ERROR: trailing whitespace
+#16016: FILE: mm/migrate.c:1286:
++        $
+
+ERROR: code indent should use tabs where possible
+#16016: FILE: mm/migrate.c:1286:
++        $
+
+WARNING: please, no spaces at the start of a line
+#16016: FILE: mm/migrate.c:1286:
++        $
+
+ERROR: trailing whitespace
+#16025: FILE: mm/migrate.c:1295:
++        $
+
+ERROR: code indent should use tabs where possible
+#16025: FILE: mm/migrate.c:1295:
++        $
+
+WARNING: please, no spaces at the start of a line
+#16025: FILE: mm/migrate.c:1295:
++        $
+
+ERROR: space required before the open brace '{'
+#16028: FILE: mm/migrate.c:1297:
++	if (!dst){
+
+WARNING: braces {} are not necessary for single statement blocks
+#16028: FILE: mm/migrate.c:1297:
++	if (!dst){
+ 		return -ENOMEM;
++        }
+
+ERROR: code indent should use tabs where possible
+#16030: FILE: mm/migrate.c:1299:
++        }$
+
+WARNING: please, no spaces at the start of a line
+#16030: FILE: mm/migrate.c:1299:
++        }$
+
+ERROR: space required before the open brace '{'
+#16037: FILE: mm/migrate.c:1305:
++		if (mode == MIGRATE_ASYNC){
+
+WARNING: braces {} are not necessary for single statement blocks
+#16037: FILE: mm/migrate.c:1305:
++		if (mode == MIGRATE_ASYNC){
+ 			goto out;
++                }
+
+ERROR: code indent should use tabs where possible
+#16039: FILE: mm/migrate.c:1307:
++                }$
+
+WARNING: please, no spaces at the start of a line
+#16039: FILE: mm/migrate.c:1307:
++                }$
+
+ERROR: space required before the open brace '{'
+#16048: FILE: mm/migrate.c:1330:
++		if (mode == MIGRATE_SYNC_LIGHT && !folio_test_uptodate(src)){
+
+WARNING: braces {} are not necessary for single statement blocks
+#16048: FILE: mm/migrate.c:1330:
++		if (mode == MIGRATE_SYNC_LIGHT && !folio_test_uptodate(src)){
+ 			goto out;
++                }
+
+ERROR: code indent should use tabs where possible
+#16051: FILE: mm/migrate.c:1332:
++                }$
+
+WARNING: please, no spaces at the start of a line
+#16051: FILE: mm/migrate.c:1332:
++                }$
+
+ERROR: code indent should use tabs where possible
+#16059: FILE: mm/migrate.c:1346:
++                        break;$
+
+WARNING: please, no spaces at the start of a line
+#16059: FILE: mm/migrate.c:1346:
++                        break;$
+
+ERROR: space required before the open brace '{'
+#16068: FILE: mm/migrate.c:1370:
++	if (folio_test_anon(src) && !folio_test_ksm(src)){
+
+WARNING: braces {} are not necessary for single statement blocks
+#16068: FILE: mm/migrate.c:1370:
++	if (folio_test_anon(src) && !folio_test_ksm(src)){
+ 		anon_vma = folio_get_anon_vma(src);
++        }
+
+ERROR: code indent should use tabs where possible
+#16070: FILE: mm/migrate.c:1372:
++        }$
+
+WARNING: please, no spaces at the start of a line
+#16070: FILE: mm/migrate.c:1372:
++        }$
+
+ERROR: space required before the open brace '{'
+#16079: FILE: mm/migrate.c:1382:
++	if (unlikely(!folio_trylock(dst))){
+
+WARNING: braces {} are not necessary for single statement blocks
+#16079: FILE: mm/migrate.c:1382:
++	if (unlikely(!folio_trylock(dst))){
+ 		goto out;
++        }
+
+ERROR: code indent should use tabs where possible
+#16081: FILE: mm/migrate.c:1384:
++        }$
+
+WARNING: please, no spaces at the start of a line
+#16081: FILE: mm/migrate.c:1384:
++        }$
+
+WARNING: Do not crash the kernel unless it is absolutely unavoidable--use WARN_ON_ONCE() plus recovery code (if feasible) instead of BUG() or variants
+#16092: FILE: mm/migrate.c:1411:
++		VM_BUG_ON_FOLIO(folio_test_anon(src) && !folio_test_ksm(src) &&
+
+ERROR: code indent should use tabs where possible
+#16096: FILE: mm/migrate.c:1415:
++^I^I^I    ^Imode == MIGRATE_ASYNC ? TTU_BATCH_FLUSH : 0);$
+
+WARNING: please, no space before tabs
+#16096: FILE: mm/migrate.c:1415:
++^I^I^I    ^Imode == MIGRATE_ASYNC ? TTU_BATCH_FLUSH : 0);$
+
+WARNING: line length of 115 exceeds 100 columns
+#16101: FILE: mm/migrate.c:1418:
++	// pr_info("folio_expected_refs(mapping, folio) = %d", folio_expected_refs((struct address_space*)1, src));
+
+ERROR: spaces required around that '==' (ctx:VxO)
+#16136: FILE: mm/migrate.c:1456:
++	is_failed_pinmig = (rc==-EPINMIGF) ? true : false;
+ 	                      ^
+
+ERROR: space required before that '-' (ctx:OxV)
+#16136: FILE: mm/migrate.c:1456:
++	is_failed_pinmig = (rc==-EPINMIGF) ? true : false;
+ 	                        ^
+
+WARNING: braces {} are not necessary for single statement blocks
+#16175: FILE: mm/migrate.c:1611:
++	if (!folio_mapped(src)) {
+ 		rc = move_to_new_folio(dst, src, mode);
++	}
+
+WARNING: line length of 156 exceeds 100 columns
+#16291: FILE: mm/migrate.c:1821:
++		list_for_each_entry_safe(folio, folio2, from, lru) {//first iteration- checking which can be moved and removing ptes (of normal, not pinned)
+
+WARNING: suspect code indent for conditional statements (40, 56)
+#16334: FILE: mm/migrate.c:1879:
+ 					} else if (reason == MR_LONGTERM_PIN &&
+[...]
++							retry++;
+
+WARNING: Block comments should align the * on each line
+#16350: FILE: mm/migrate.c:1882:
++							/*
++							* Try again to split large folio to
+
+ERROR: trailing whitespace
+#16373: FILE: mm/migrate.c:1924:
++^I^I^I^I$
+
+WARNING: line length of 118 exceeds 100 columns
+#16383: FILE: mm/migrate.c:1947:
++		list_for_each_entry_safe(folio, folio2, &unmap_folios, lru) { //second iteration- migrating everything
+
+WARNING: Possible repeated word: 'from'
+#16399: FILE: mm/migrate.c:1959:
++			 *	-EPINMIGF: remove from from list, will not try again in fallback.
+
+ERROR: space required before the open brace '{'
+#16520: FILE: mm/migrate.c:2131:
++	} else{
+
+ERROR: code indent should use tabs where possible
+#16526: FILE: mm/migrate.c:2135:
++        }$
+
+WARNING: please, no spaces at the start of a line
+#16526: FILE: mm/migrate.c:2135:
++        }$
+
+ERROR: trailing whitespace
+#16527: FILE: mm/migrate.c:2136:
++^I^I$
+
+ERROR: code indent should use tabs where possible
+#16553: FILE: mm/migrate.c:2188:
++        struct folio* tmp_for_tst;$
+
+WARNING: please, no spaces at the start of a line
+#16553: FILE: mm/migrate.c:2188:
++        struct folio* tmp_for_tst;$
+
+ERROR: "foo* bar" should be "foo *bar"
+#16553: FILE: mm/migrate.c:2188:
++        struct folio* tmp_for_tst;
+
+ERROR: trailing whitespace
+#16566: FILE: mm/migrate.c:2208:
++        $
+
+ERROR: code indent should use tabs where possible
+#16566: FILE: mm/migrate.c:2208:
++        $
+
+WARNING: please, no spaces at the start of a line
+#16566: FILE: mm/migrate.c:2208:
++        $
+
+ERROR: code indent should use tabs where possible
+#16576: FILE: mm/migrate.c:2224:
++        return tmp_for_tst;$
+
+WARNING: please, no spaces at the start of a line
+#16576: FILE: mm/migrate.c:2224:
++        return tmp_for_tst;$
+
+ERROR: space required before the open brace '{'
+#16633: FILE: mm/migrate.c:2345:
++	if (list_empty(pagelist)){
+
+WARNING: braces {} are not necessary for single statement blocks
+#16633: FILE: mm/migrate.c:2345:
++	if (list_empty(pagelist)){
+ 		return 0;
++	}
+
+WARNING: Missing or malformed SPDX-License-Identifier tag in line 1
+#16853: FILE: mm/page_alias.c:1:
++#include <linux/interval_tree.h>
+
+WARNING: Block comments should align the * on each line
+#16874: FILE: mm/page_alias.c:22:
++/* ***************************************************
++   ************* PAGE ALIAS DEFINITIONS **************
+
+WARNING: Block comments use a trailing */ on a separate line
+#16875: FILE: mm/page_alias.c:23:
++   *************************************************** */
+
+WARNING: externs should be avoided in .c files
+#16883: FILE: mm/page_alias.c:31:
++extern int total_rmaps;
+
+ERROR: open brace '{' following function definitions go on the next line
+#16896: FILE: mm/page_alias.c:44:
++int iommu_rmap_empty(struct iommu_rmap a){
+
+ERROR: space required before the open brace '{'
+#16896: FILE: mm/page_alias.c:44:
++int iommu_rmap_empty(struct iommu_rmap a){
+
+ERROR: trailing whitespace
+#16901: FILE: mm/page_alias.c:49:
++^Iatomic_t do_not_move; $
+
+ERROR: "foo* bar" should be "foo *bar"
+#16904: FILE: mm/page_alias.c:52:
++	void* kernel_rmap;
+
+WARNING: Prefer [subsystem eg: netdev]_info([subsystem]dev, ... then dev_info(dev, ... then pr_info(...  to printk(KERN_INFO ...
+#16921: FILE: mm/page_alias.c:69:
++	printk(KERN_INFO "Initializing PageAlias, Omer Daube and Nizan Kafman-Raz\n");
+
+WARNING: Missing a blank line after declarations
+#16934: FILE: mm/page_alias.c:82:
++	struct page_alias *page_alias;
++	page_alias = get_page_alias(page_ext);
+
+WARNING: Missing a blank line after declarations
+#16947: FILE: mm/page_alias.c:95:
++	struct page_ext *page_ext;
++	page_ext = page_ext_get(page);
+
+WARNING: Block comments should align the * on each line
+#16955: FILE: mm/page_alias.c:103:
++/* ***************************************************
++   **************** HELPER FUNCTIONS *****************
+
+WARNING: Block comments use a trailing */ on a separate line
+#16956: FILE: mm/page_alias.c:104:
++   *************************************************** */
+
+WARNING: Missing a blank line after declarations
+#16970: FILE: mm/page_alias.c:118:
++	int iommu_refs = page_alias->iommu_ref_count;
++	page_ext_put(page_ext);
+
+WARNING: line length of 181 exceeds 100 columns
+#16971: FILE: mm/page_alias.c:119:
++	return (kernel_refs != 0) ? kernel_refs : iommu_refs ; // We are only returning iommu_refs if kernel_refs is zero, because then the only mapping is the IOMMU, as we assumed.
+
+ERROR: trailing whitespace
+#16974: FILE: mm/page_alias.c:122:
++/* $
+
+ERROR: open brace '{' following function definitions go on the next line
+#16981: FILE: mm/page_alias.c:129:
++int is_alias_rmap_empty(struct page *page) {
+
+WARNING: Missing a blank line after declarations
+#16985: FILE: mm/page_alias.c:133:
++	int ret = (iommu_rmap_empty(page_alias->iommu_rmap) && !(page_alias->kernel_rmap));
++	page_ext_put(page_ext);
+
+ERROR: trailing whitespace
+#16989: FILE: mm/page_alias.c:137:
++/* $
+
+ERROR: open brace '{' following function definitions go on the next line
+#16996: FILE: mm/page_alias.c:144:
++int is_alias_dma_page(struct page *page) {
+
+WARNING: Missing a blank line after declarations
+#17000: FILE: mm/page_alias.c:148:
++	int ret = !iommu_rmap_empty(page_alias->iommu_rmap);
++	page_ext_put(page_ext);
+
+ERROR: trailing whitespace
+#17004: FILE: mm/page_alias.c:152:
++/* $
+
+ERROR: trailing whitespace
+#17011: FILE: mm/page_alias.c:159:
++int is_alias_kernel_page(struct page *page) { $
+
+ERROR: open brace '{' following function definitions go on the next line
+#17011: FILE: mm/page_alias.c:159:
++int is_alias_kernel_page(struct page *page) { 
+
+WARNING: Missing a blank line after declarations
+#17015: FILE: mm/page_alias.c:163:
++	int ret = !!(page_alias->kernel_rmap);
++	page_ext_put(page_ext);
+
+ERROR: trailing whitespace
+#17019: FILE: mm/page_alias.c:167:
++/* $
+
+ERROR: open brace '{' following function definitions go on the next line
+#17026: FILE: mm/page_alias.c:174:
++void *get_alias_rmap(struct page *page){
+
+ERROR: space required before the open brace '{'
+#17026: FILE: mm/page_alias.c:174:
++void *get_alias_rmap(struct page *page){
+
+ERROR: "foo* bar" should be "foo *bar"
+#17029: FILE: mm/page_alias.c:177:
++	void* ret;
+
+ERROR: trailing whitespace
+#17030: FILE: mm/page_alias.c:178:
++^Iint i = page_alias->iommu_ref_count; $
+
+WARNING: Missing a blank line after declarations
+#17031: FILE: mm/page_alias.c:179:
++	int i = page_alias->iommu_ref_count; 
++	if((page_alias->kernel_rmap) && (i)) {
+
+ERROR: space required before the open parenthesis '('
+#17031: FILE: mm/page_alias.c:179:
++	if((page_alias->kernel_rmap) && (i)) {
+
+WARNING: braces {} are not necessary for single statement blocks
+#17031: FILE: mm/page_alias.c:179:
++	if((page_alias->kernel_rmap) && (i)) {
++		pr_info("Both kernel and iommu rmaps!\n"); 
++	}
+
+ERROR: trailing whitespace
+#17032: FILE: mm/page_alias.c:180:
++^I^Ipr_info("Both kernel and iommu rmaps!\n"); $
+
+ERROR: trailing whitespace
+#17038: FILE: mm/page_alias.c:186:
++^Ielse { $
+
+ERROR: else should follow close brace '}'
+#17038: FILE: mm/page_alias.c:186:
++	}
++	else { 
+
+ERROR: trailing whitespace
+#17040: FILE: mm/page_alias.c:188:
++^I^Iret = phys_to_virt(page_alias->iommu_rmap.phys_pfn); $
+
+WARNING: Block comments should align the * on each line
+#17048: FILE: mm/page_alias.c:196:
++/* ***************************************************
++   **************** KERNEL FUNCTIONS *****************
+
+WARNING: Block comments use a trailing */ on a separate line
+#17049: FILE: mm/page_alias.c:197:
++   *************************************************** */
+
+ERROR: open brace '{' following function definitions go on the next line
+#17057: FILE: mm/page_alias.c:205:
++void *alias_vmap(struct page *page) {
+
+WARNING: Missing a blank line after declarations
+#17059: FILE: mm/page_alias.c:207:
++	void *vmap_address, *old_rmap;
++	BUG_ON(!page);
+
+WARNING: Do not crash the kernel unless it is absolutely unavoidable--use WARN_ON_ONCE() plus recovery code (if feasible) instead of BUG() or variants
+#17059: FILE: mm/page_alias.c:207:
++	BUG_ON(!page);
+
+WARNING: Missing a blank line after declarations
+#17062: FILE: mm/page_alias.c:210:
++	struct page_alias *page_alias = page_ext_data(page_ext, &page_alias_ops);
++	vmap_address = page_alias->kernel_rmap;
+
+ERROR: space required before the open brace '{'
+#17064: FILE: mm/page_alias.c:212:
++	if(atomic_inc_not_zero(&page_alias->kernel_ref_count)){
+
+ERROR: space required before the open parenthesis '('
+#17064: FILE: mm/page_alias.c:212:
++	if(atomic_inc_not_zero(&page_alias->kernel_ref_count)){
+
+WARNING: 'unecessary' may be misspelled - perhaps 'unnecessary'?
+#17065: FILE: mm/page_alias.c:213:
++		/* could also always skip this, but it could save unecessary vmaps and vunmaps */
+ 		                                                  ^^^^^^^^^^
+
+WARNING: Do not crash the kernel unless it is absolutely unavoidable--use WARN_ON_ONCE() plus recovery code (if feasible) instead of BUG() or variants
+#17066: FILE: mm/page_alias.c:214:
++		BUG_ON(!vmap_address);
+
+ERROR: space required before the open brace '{'
+#17073: FILE: mm/page_alias.c:221:
++		if (cmpxchg(&page_alias->kernel_rmap, old_rmap, vmap_address)){
+
+WARNING: Do not crash the kernel unless it is absolutely unavoidable--use WARN_ON_ONCE() plus recovery code (if feasible) instead of BUG() or variants
+#17080: FILE: mm/page_alias.c:228:
++			BUG_ON(!vmap_address);
+
+ERROR: trailing whitespace
+#17084: FILE: mm/page_alias.c:232:
++^Iatomic_cmpxchg(&page_alias->do_not_move, UNALIASED_YET, READY_TO_MOVE); $
+
+WARNING: Do not crash the kernel unless it is absolutely unavoidable--use WARN_ON_ONCE() plus recovery code (if feasible) instead of BUG() or variants
+#17086: FILE: mm/page_alias.c:234:
++	BUG_ON(!is_vmalloc_addr(vmap_address));
+
+ERROR: open brace '{' following function definitions go on the next line
+#17096: FILE: mm/page_alias.c:244:
++void alias_vunmap(void *p) {
+
+WARNING: Do not crash the kernel unless it is absolutely unavoidable--use WARN_ON_ONCE() plus recovery code (if feasible) instead of BUG() or variants
+#17097: FILE: mm/page_alias.c:245:
++	BUG_ON(!is_vmalloc_addr(p));
+
+ERROR: "foo* bar" should be "foo *bar"
+#17098: FILE: mm/page_alias.c:246:
++	struct page* page = alias_vmap_to_page(p);
+
+WARNING: Missing a blank line after declarations
+#17101: FILE: mm/page_alias.c:249:
++	struct page_alias *page_alias = page_ext_data(page_ext, &page_alias_ops);
++	if (!atomic_add_unless(&page_alias->kernel_ref_count, -1, 1)) {
+
+ERROR: open brace '{' following function definitions go on the next line
+#17122: FILE: mm/page_alias.c:270:
++struct page *alias_vmap_to_page(void *p) {
+
+WARNING: Missing a blank line after declarations
+#17124: FILE: mm/page_alias.c:272:
++	struct page *page;
++	page = vmalloc_to_page(p);
+
+WARNING: Missing a blank line after declarations
+#17127: FILE: mm/page_alias.c:275:
++	struct page_alias *page_alias = page_ext_data(page_ext, &page_alias_ops);
++	while(atomic_cmpxchg(&page_alias->do_not_move, BEING_MIGRATED, BEING_MIGRATED));
+
+ERROR: space required before the open parenthesis '('
+#17127: FILE: mm/page_alias.c:275:
++	while(atomic_cmpxchg(&page_alias->do_not_move, BEING_MIGRATED, BEING_MIGRATED));
+
+ERROR: trailing statements should be on next line
+#17127: FILE: mm/page_alias.c:275:
++	while(atomic_cmpxchg(&page_alias->do_not_move, BEING_MIGRATED, BEING_MIGRATED));
+
+WARNING: line length of 108 exceeds 100 columns
+#17128: FILE: mm/page_alias.c:276:
++	atomic_inc(&page_alias->do_not_move); // make it hold the number of places that hold the page struct
+
+WARNING: line length of 103 exceeds 100 columns
+#17135: FILE: mm/page_alias.c:283:
++ * Description: This function is used to close a page that was aliased (set the do_not_move parameter).
+
+ERROR: open brace '{' following function definitions go on the next line
+#17139: FILE: mm/page_alias.c:287:
++void alias_page_close(struct page *page) {
+
+WARNING: Missing a blank line after declarations
+#17142: FILE: mm/page_alias.c:290:
++	struct page_alias *page_alias = page_ext_data(page_ext, &page_alias_ops);
++	BUG_ON(atomic_read(&page_alias->do_not_move) <= READY_TO_MOVE);
+
+WARNING: Do not crash the kernel unless it is absolutely unavoidable--use WARN_ON_ONCE() plus recovery code (if feasible) instead of BUG() or variants
+#17142: FILE: mm/page_alias.c:290:
++	BUG_ON(atomic_read(&page_alias->do_not_move) <= READY_TO_MOVE);
+
+ERROR: open brace '{' following function definitions go on the next line
+#17154: FILE: mm/page_alias.c:302:
++int start_pinned_migration(struct page *page) {
+
+WARNING: Missing a blank line after declarations
+#17158: FILE: mm/page_alias.c:306:
++	struct page_alias *page_alias = page_ext_data(page_ext, &page_alias_ops);
++	ret = atomic_cmpxchg(&page_alias->do_not_move, READY_TO_MOVE, BEING_MIGRATED);
+
+ERROR: open brace '{' following function definitions go on the next line
+#17169: FILE: mm/page_alias.c:317:
++void end_pinned_migration(struct page *page) {
+
+WARNING: Block comments should align the * on each line
+#17179: FILE: mm/page_alias.c:327:
++/* ***************************************************
++   ***************** IOMMU FUNCTIONS *****************
+
+WARNING: Block comments use a trailing */ on a separate line
+#17180: FILE: mm/page_alias.c:328:
++   *************************************************** */
+
+WARNING: line length of 106 exceeds 100 columns
+#17190: FILE: mm/page_alias.c:338:
++void alias_iommu_create_rmap(struct iommu_domain *domain, unsigned long phys_pfn, unsigned long iov_pfn) {
+
+ERROR: open brace '{' following function definitions go on the next line
+#17190: FILE: mm/page_alias.c:338:
++void alias_iommu_create_rmap(struct iommu_domain *domain, unsigned long phys_pfn, unsigned long iov_pfn) {
+
+WARNING: Do not crash the kernel unless it is absolutely unavoidable--use WARN_ON_ONCE() plus recovery code (if feasible) instead of BUG() or variants
+#17197: FILE: mm/page_alias.c:345:
++	BUG_ON(!page);
+
+ERROR: trailing whitespace
+#17198: FILE: mm/page_alias.c:346:
++^I$
+
+WARNING: Missing a blank line after declarations
+#17200: FILE: mm/page_alias.c:348:
++	struct page_ext *page_ext = page_ext_get(page);
++	if (!page_ext) {
+
+ERROR: space required before the open brace '{'
+#17201: FILE: mm/page_alias.c:349:
++		if (!pfn_valid(phys_pfn)){
+
+WARNING: Do not crash the kernel unless it is absolutely unavoidable--use WARN_ON_ONCE() plus recovery code (if feasible) instead of BUG() or variants
+#17205: FILE: mm/page_alias.c:353:
++		BUG_ON(true);
+
+ERROR: trailing whitespace
+#17210: FILE: mm/page_alias.c:358:
++^I$
+
+WARNING: Missing a blank line after declarations
+#17212: FILE: mm/page_alias.c:360:
++	struct page_alias *page_alias = page_ext_data(page_ext, &page_alias_ops);
++	if (!page_alias) {
+
+ERROR: trailing whitespace
+#17220: FILE: mm/page_alias.c:368:
++^I$
+
+ERROR: trailing whitespace
+#17227: FILE: mm/page_alias.c:375:
++^I$
+
+ERROR: open brace '{' following function definitions go on the next line
+#17239: FILE: mm/page_alias.c:387:
++void alias_iommu_free_rmap(unsigned long phys_pfn){
+
+ERROR: space required before the open brace '{'
+#17239: FILE: mm/page_alias.c:387:
++void alias_iommu_free_rmap(unsigned long phys_pfn){
+
+WARNING: Do not crash the kernel unless it is absolutely unavoidable--use WARN_ON_ONCE() plus recovery code (if feasible) instead of BUG() or variants
+#17246: FILE: mm/page_alias.c:394:
++	BUG_ON(!page);
+
+ERROR: space required before the open brace '{'
+#17250: FILE: mm/page_alias.c:398:
++		if (!pfn_valid(phys_pfn)){
+
+WARNING: braces {} are not necessary for single statement blocks
+#17250: FILE: mm/page_alias.c:398:
++		if (!pfn_valid(phys_pfn)){
++			return;
++		}
+
+ERROR: trailing whitespace
+#17255: FILE: mm/page_alias.c:403:
++^Itotal_rmaps--; $
+
+WARNING: line length of 136 exceeds 100 columns
+#17269: FILE: mm/page_alias.c:417:
++ *  prepare: Pass to the migrate_page function. If 1, prepare for migration by turning off the dirty bit. If 0, do the migration itself.
+
+ERROR: open brace '{' following function definitions go on the next line
+#17273: FILE: mm/page_alias.c:421:
++int call_dma_migrate_page(struct page *page, bool prepare, struct folio *folio) {
+
+ERROR: "foo* bar" should be "foo *bar"
+#17277: FILE: mm/page_alias.c:425:
++	struct iommu_domain* domain = iommu_rmap.domain;
+
+WARNING: Missing a blank line after declarations
+#17279: FILE: mm/page_alias.c:427:
++	int ret = domain->ops->migrate_page(domain, iommu_rmap.iov_pfn, folio, prepare);
++	page_ext_put(page_ext);
+
+ERROR: code indent should use tabs where possible
+#17319: FILE: mm/page_ext.c:90:
++        &page_alias_ops,$
+
+WARNING: please, no spaces at the start of a line
+#17319: FILE: mm/page_ext.c:90:
++        &page_alias_ops,$
+
+WARNING: Do not use trace_printk() in production code (this can be ignored if built only with a debug config option)
+#17329: FILE: mm/page_ext.c:187:
++	trace_printk("[][][][][][][][][]allocating page_ext for node %d\n", nid);
+
+WARNING: line length of 102 exceeds 100 columns
+#17370: FILE: mm/rmap.c:2070:
++			// pr_info("is_alias_rmap_empty(subpage) = %d", is_alias_rmap_empty(subpage));
+
+ERROR: space required before the open brace '{'
+#17388: FILE: mm/rmap.c:2087:
++			if (pte_write(pteval)){
+
+ERROR: space required before the open brace '{'
+#17393: FILE: mm/rmap.c:2091:
++			else if (anon_exclusive){
+
+ERROR: else should follow close brace '}'
+#17393: FILE: mm/rmap.c:2091:
++			}
++			else if (anon_exclusive){
+
+ERROR: space required before the open brace '{'
+#17399: FILE: mm/rmap.c:2096:
++			else{
+
+ERROR: else should follow close brace '}'
+#17399: FILE: mm/rmap.c:2096:
++			}
++			else{
+
+ERROR: space required before the open brace '{'
+#17404: FILE: mm/rmap.c:2100:
++			if (pte_young(pteval)){
+
+WARNING: braces {} are not necessary for single statement blocks
+#17404: FILE: mm/rmap.c:2100:
++			if (pte_young(pteval)){
+ 				entry = make_migration_entry_young(entry);
++			}
+
+ERROR: space required before the open brace '{'
+#17408: FILE: mm/rmap.c:2103:
++			if (pte_dirty(pteval)){
+
+WARNING: braces {} are not necessary for single statement blocks
+#17408: FILE: mm/rmap.c:2103:
++			if (pte_dirty(pteval)){
+ 				entry = make_migration_entry_dirty(entry);
++			}
+
+ERROR: space required before the open brace '{'
+#17413: FILE: mm/rmap.c:2107:
++			if (pte_soft_dirty(pteval)){
+
+WARNING: braces {} are not necessary for single statement blocks
+#17413: FILE: mm/rmap.c:2107:
++			if (pte_soft_dirty(pteval)){
+ 				swp_pte = pte_swp_mksoft_dirty(swp_pte);
++			}
+
+ERROR: space required before the open brace '{'
+#17417: FILE: mm/rmap.c:2110:
++			if (pte_uffd_wp(pteval)){
+
+WARNING: braces {} are not necessary for single statement blocks
+#17417: FILE: mm/rmap.c:2110:
++			if (pte_uffd_wp(pteval)){
+ 				swp_pte = pte_swp_mkuffd_wp(swp_pte);
++			}
+
+ERROR: space required before the open brace '{'
+#17421: FILE: mm/rmap.c:2113:
++			if (folio_test_hugetlb(folio)){
+
+ERROR: space required before the open brace '{'
+#17426: FILE: mm/rmap.c:2117:
++			else{
+
+ERROR: else should follow close brace '}'
+#17426: FILE: mm/rmap.c:2117:
++			}
++			else{
+
+WARNING: braces {} are not necessary for single statement blocks
+#17426: FILE: mm/rmap.c:2117:
++			else{
+ 				set_pte_at(mm, address, pvmw.pte, swp_pte);
++			}
+
+ERROR: space required before the open brace '{'
+#17439: FILE: mm/rmap.c:2128:
++		if (vma->vm_flags & VM_LOCKED){
+
+WARNING: braces {} are not necessary for single statement blocks
+#17439: FILE: mm/rmap.c:2128:
++		if (vma->vm_flags & VM_LOCKED){
+ 			mlock_drain_local();
++		}
+
+WARNING: Unnecessary ftrace-like logging - prefer using ftrace
+#17454: FILE: mm/rmap.c:2147:
++	// pr_info("In %s\n", __func__);
+
+ERROR: space required before the open brace '{'
+#17466: FILE: mm/rmap.c:2176:
++	if (!folio_test_ksm(folio) && folio_test_anon(folio)){
+
+WARNING: braces {} are not necessary for single statement blocks
+#17466: FILE: mm/rmap.c:2176:
++	if (!folio_test_ksm(folio) && folio_test_anon(folio)){
++		rwc.invalid_vma = invalid_migration_vma;
++	}
+
+ERROR: space required before the open brace '{'
+#17469: FILE: mm/rmap.c:2179:
++	if (flags & TTU_RMAP_LOCKED){
+
+WARNING: braces {} are not necessary for any arm of this statement
+#17469: FILE: mm/rmap.c:2179:
++	if (flags & TTU_RMAP_LOCKED){
+[...]
+ 	else
+[...]
+
+ERROR: trailing whitespace
+#18636: FILE: usr/stack_decode_eagain.txt:1:
++[  801.708188] BUG: KASAN: wild-memory-access in __rmqueue_pcplist (./include/linux/list.h:195 ./include/linux/list.h:218 ./include/linux/list.h:229 mm/page_alloc.c:2710) $
+
+ERROR: trailing whitespace
+#18643: FILE: usr/stack_decode_eagain.txt:8:
++[  801.715266] dump_stack_lvl (lib/dump_stack.c:107) $
+
+ERROR: trailing whitespace
+#18644: FILE: usr/stack_decode_eagain.txt:9:
++[  801.716013] kasan_report (mm/kasan/report.c:590) $
+
+ERROR: trailing whitespace
+#18645: FILE: usr/stack_decode_eagain.txt:10:
++[  801.716727] ? __rmqueue_pcplist (./include/linux/list.h:195 ./include/linux/list.h:218 ./include/linux/list.h:229 mm/page_alloc.c:2710) $
+
+ERROR: trailing whitespace
+#18646: FILE: usr/stack_decode_eagain.txt:11:
++[  801.717606] __rmqueue_pcplist (./include/linux/list.h:195 ./include/linux/list.h:218 ./include/linux/list.h:229 mm/page_alloc.c:2710) $
+
+ERROR: trailing whitespace
+#18647: FILE: usr/stack_decode_eagain.txt:12:
++[  801.718414] ? lock_acquire (kernel/locking/lockdep.c:467 kernel/locking/lockdep.c:5755 kernel/locking/lockdep.c:5718) $
+
+ERROR: trailing whitespace
+#18648: FILE: usr/stack_decode_eagain.txt:13:
++[  801.719183] ? get_page_from_freelist (mm/page_alloc.c:2729 mm/page_alloc.c:2779 mm/page_alloc.c:3169) $
+
+ERROR: trailing whitespace
+#18649: FILE: usr/stack_decode_eagain.txt:14:
++[  801.720132] ? __pfx___rmqueue_pcplist (mm/page_alloc.c:2683) $
+
+ERROR: trailing whitespace
+#18650: FILE: usr/stack_decode_eagain.txt:15:
++[  801.721045] ? __pfx_do_raw_spin_trylock (kernel/locking/spinlock_debug.c:121) $
+
+ERROR: trailing whitespace
+#18651: FILE: usr/stack_decode_eagain.txt:16:
++[  801.721998] get_page_from_freelist (./include/linux/spinlock.h:391 mm/page_alloc.c:2743 mm/page_alloc.c:2779 mm/page_alloc.c:3169) $
+
+ERROR: trailing whitespace
+#18736: FILE: usr/stack_decode_eagain.txt:101:
++[  801.722901] ? _raw_spin_unlock (./arch/x86/include/asm/preempt.h:95 ./include/linux/spinlock_api_smp.h:143 kernel/locking/spinlock.c:186) $
+
+ERROR: trailing whitespace
+#18737: FILE: usr/stack_decode_eagain.txt:102:
++[  801.723691] ? check_chain_key (kernel/locking/lockdep.c:3931) $
+
+ERROR: trailing whitespace
+#18738: FILE: usr/stack_decode_eagain.txt:103:
++[  801.724505] ? __pfx_get_page_from_freelist (mm/page_alloc.c:3052) $
+
+ERROR: trailing whitespace
+#18739: FILE: usr/stack_decode_eagain.txt:104:
++[  801.725500] ? __pfx_remove_migration_pte (mm/migrate.c:199) $
+
+ERROR: trailing whitespace
+#18740: FILE: usr/stack_decode_eagain.txt:105:
++[  801.726466] __alloc_pages (mm/page_alloc.c:4428) $
+
+ERROR: trailing whitespace
+#18741: FILE: usr/stack_decode_eagain.txt:106:
++[  801.727230] ? __pfx___up_read (kernel/locking/rwsem.c:1339) $
+
+ERROR: trailing whitespace
+#18742: FILE: usr/stack_decode_eagain.txt:107:
++[  801.728004] ? rmap_walk_anon (./include/linux/rmap.h:141 mm/rmap.c:2449) $
+
+ERROR: trailing whitespace
+#18743: FILE: usr/stack_decode_eagain.txt:108:
++[  801.728799] ? __pfx___alloc_pages (mm/page_alloc.c:4394) $
+
+ERROR: trailing whitespace
+#18744: FILE: usr/stack_decode_eagain.txt:109:
++[  801.729645] ? migrate_folio_undo_src (./include/linux/list.h:156 ./include/linux/list.h:183 ./include/linux/list.h:311 mm/migrate.c:1206) $
+
+ERROR: trailing whitespace
+#18745: FILE: usr/stack_decode_eagain.txt:110:
++[  801.730563] ? __pfx_migrate_folio_undo_src (mm/migrate.c:1197) $
+
+ERROR: trailing whitespace
+#18746: FILE: usr/stack_decode_eagain.txt:111:
++[  801.731547] ? __pfx_try_to_migrate (mm/rmap.c:2137) $
+
+ERROR: trailing whitespace
+#18747: FILE: usr/stack_decode_eagain.txt:112:
++[  801.732400] ? __pfx_remove_migration_pte (mm/migrate.c:199) $
+
+ERROR: trailing whitespace
+#18748: FILE: usr/stack_decode_eagain.txt:113:
++[  801.733359] migrate_pages_batch (mm/migrate.c:1266 mm/migrate.c:1817) $
+
+ERROR: trailing whitespace
+#18749: FILE: usr/stack_decode_eagain.txt:114:
++[  801.734219] ? __pfx_alloc_migration_target (mm/migrate.c:2159) $
+
+ERROR: trailing whitespace
+#18750: FILE: usr/stack_decode_eagain.txt:115:
++[  801.735207] ? __pfx_migrate_pages_batch (mm/migrate.c:1766) $
+
+ERROR: trailing whitespace
+#18751: FILE: usr/stack_decode_eagain.txt:116:
++[  801.736139] ? hlock_class (./arch/x86/include/asm/bitops.h:228 ./arch/x86/include/asm/bitops.h:240 ./include/asm-generic/bitops/instrumented-non-atomic.h:142 kernel/locking/lockdep.c:228) $
+
+ERROR: trailing whitespace
+#18752: FILE: usr/stack_decode_eagain.txt:117:
++[  801.736849] ? mark_lock (kernel/locking/lockdep.c:4655) $
+
+ERROR: trailing whitespace
+#18753: FILE: usr/stack_decode_eagain.txt:118:
++[  801.737551] ? __pfx___lock_acquire (kernel/locking/lockdep.c:4992) $
+
+ERROR: trailing whitespace
+#18754: FILE: usr/stack_decode_eagain.txt:119:
++[  801.738408] ? __pfx_mark_lock (kernel/locking/lockdep.c:4638) $
+
+ERROR: trailing whitespace
+#18755: FILE: usr/stack_decode_eagain.txt:120:
++[  801.739191] migrate_pages (mm/migrate.c:2017 mm/migrate.c:2105) $
+
+ERROR: trailing whitespace
+#18756: FILE: usr/stack_decode_eagain.txt:121:
++[  801.739949] ? __pfx_alloc_migration_target (mm/migrate.c:2159) $
+
+ERROR: trailing whitespace
+#18757: FILE: usr/stack_decode_eagain.txt:122:
++[  801.740936] ? __pfx_migrate_pages (mm/migrate.c:2060) $
+
+ERROR: trailing whitespace
+#18758: FILE: usr/stack_decode_eagain.txt:123:
++[  801.741791] ? mark_lock (kernel/locking/lockdep.c:4655) $
+
+ERROR: trailing whitespace
+#18759: FILE: usr/stack_decode_eagain.txt:124:
++[  801.742487] ? __pfx_mark_lock (kernel/locking/lockdep.c:4638) $
+
+ERROR: trailing whitespace
+#18760: FILE: usr/stack_decode_eagain.txt:125:
++[  801.743258] ? check_chain_key (kernel/locking/lockdep.c:3931) $
+
+ERROR: trailing whitespace
+#18761: FILE: usr/stack_decode_eagain.txt:126:
++[  801.744064] ? check_chain_key (kernel/locking/lockdep.c:3931) $
+
+ERROR: trailing whitespace
+#18762: FILE: usr/stack_decode_eagain.txt:127:
++[  801.744866] move_pages_and_store_status.isra.0 (mm/migrate.c:2221 mm/migrate.c:2319) $
+
+ERROR: trailing whitespace
+#18763: FILE: usr/stack_decode_eagain.txt:128:
++[  801.745933] ? __pfx_move_pages_and_store_status.isra.0 (mm/migrate.c:2309) $
+
+ERROR: trailing whitespace
+#18764: FILE: usr/stack_decode_eagain.txt:129:
++[  801.747105] ? lockdep_hardirqs_on_prepare (kernel/locking/lockdep.c:4299 kernel/locking/lockdep.c:4358 kernel/locking/lockdep.c:4310) $
+
+ERROR: trailing whitespace
+#18765: FILE: usr/stack_decode_eagain.txt:130:
++[  801.748101] ? _raw_spin_unlock_irq (./arch/x86/include/asm/irqflags.h:42 ./arch/x86/include/asm/irqflags.h:77 ./include/linux/spinlock_api_smp.h:159 kernel/locking/spinlock.c:202) $
+
+ERROR: trailing whitespace
+#18766: FILE: usr/stack_decode_eagain.txt:131:
++[  801.748965] kernel_move_pages (mm/migrate.c:2434 mm/migrate.c:2614) $
+
+ERROR: trailing whitespace
+#18767: FILE: usr/stack_decode_eagain.txt:132:
++[  801.749786] ? __pfx_kernel_move_pages (mm/migrate.c:2597) $
+
+ERROR: trailing whitespace
+#18768: FILE: usr/stack_decode_eagain.txt:133:
++[  801.750698] ? ksys_write (fs/read_write.c:639) $
+
+ERROR: trailing whitespace
+#18769: FILE: usr/stack_decode_eagain.txt:134:
++[  801.751414] ? __pfx_ksys_write (fs/read_write.c:627) $
+
+ERROR: trailing whitespace
+#18770: FILE: usr/stack_decode_eagain.txt:135:
++[  801.752204] __x64_sys_move_pages (mm/migrate.c:2623) $
+
+ERROR: trailing whitespace
+#18771: FILE: usr/stack_decode_eagain.txt:136:
++[  801.753021] do_syscall_64 (arch/x86/entry/common.c:50 arch/x86/entry/common.c:80) $
+
+ERROR: trailing whitespace
+#18772: FILE: usr/stack_decode_eagain.txt:137:
++[  801.753741] entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:120) $
+
+ERROR: trailing whitespace
+#18862: FILE: usr/stack_decode_eagain.txt:227:
++   3:   c3                      ret    $
+
+ERROR: trailing whitespace
+#18864: FILE: usr/stack_decode_eagain.txt:229:
++   b:   00 00 $
+
+ERROR: trailing whitespace
+#18865: FILE: usr/stack_decode_eagain.txt:230:
++   d:   f3 0f 1e fa             endbr64 $
+
+ERROR: trailing whitespace
+#18873: FILE: usr/stack_decode_eagain.txt:238:
++  28:   0f 05                   syscall $
+
+ERROR: trailing whitespace
+#18876: FILE: usr/stack_decode_eagain.txt:241:
++  32:   c3                      ret    $
+
+ERROR: trailing whitespace
+#18886: FILE: usr/stack_decode_eagain.txt:251:
++   8:   c3                      ret    $
+
+ERROR: trailing whitespace
+#18903: FILE: usr/stack_decode_eagain.txt:268:
++[  801.775584] RIP: 0010:__rmqueue_pcplist (./include/linux/list.h:195 ./include/linux/list.h:218 ./include/linux/list.h:229 mm/page_alloc.c:2710) $
+
+ERROR: trailing whitespace
+#18943: FILE: usr/stack_decode_eagain.txt:308:
++[  801.792811] ? die_addr (arch/x86/kernel/dumpstack.c:421 arch/x86/kernel/dumpstack.c:460) $
+
+ERROR: trailing whitespace
+#18944: FILE: usr/stack_decode_eagain.txt:309:
++[  801.793481] ? exc_general_protection (arch/x86/kernel/traps.c:700 arch/x86/kernel/traps.c:642) $
+
+ERROR: trailing whitespace
+#18945: FILE: usr/stack_decode_eagain.txt:310:
++[  801.794409] ? asm_exc_general_protection (./arch/x86/include/asm/idtentry.h:564) $
+
+ERROR: trailing whitespace
+#18946: FILE: usr/stack_decode_eagain.txt:311:
++[  801.795358] ? add_taint (./arch/x86/include/asm/bitops.h:60 ./include/asm-generic/bitops/instrumented-atomic.h:29 kernel/panic.c:539) $
+
+ERROR: trailing whitespace
+#18947: FILE: usr/stack_decode_eagain.txt:312:
++[  801.796044] ? __rmqueue_pcplist (./include/linux/list.h:195 ./include/linux/list.h:218 ./include/linux/list.h:229 mm/page_alloc.c:2710) $
+
+ERROR: trailing whitespace
+#18948: FILE: usr/stack_decode_eagain.txt:313:
++[  801.796877] ? __rmqueue_pcplist (./include/linux/list.h:195 ./include/linux/list.h:218 ./include/linux/list.h:229 mm/page_alloc.c:2710) $
+
+ERROR: trailing whitespace
+#18949: FILE: usr/stack_decode_eagain.txt:314:
++[  801.797718] ? lock_acquire (kernel/locking/lockdep.c:467 kernel/locking/lockdep.c:5755 kernel/locking/lockdep.c:5718) $
+
+ERROR: trailing whitespace
+#18950: FILE: usr/stack_decode_eagain.txt:315:
++[  801.798471] ? get_page_from_freelist (mm/page_alloc.c:2729 mm/page_alloc.c:2779 mm/page_alloc.c:3169) $
+
+ERROR: trailing whitespace
+#18951: FILE: usr/stack_decode_eagain.txt:316:
++[  801.799410] ? __pfx___rmqueue_pcplist (mm/page_alloc.c:2683) $
+
+ERROR: trailing whitespace
+#18952: FILE: usr/stack_decode_eagain.txt:317:
++[  801.800307] ? __pfx_do_raw_spin_trylock (kernel/locking/spinlock_debug.c:121) $
+
+ERROR: trailing whitespace
+#18953: FILE: usr/stack_decode_eagain.txt:318:
++[  801.801243] get_page_from_freelist (./include/linux/spinlock.h:391 mm/page_alloc.c:2743 mm/page_alloc.c:2779 mm/page_alloc.c:3169) $
+
+ERROR: trailing whitespace
+#18954: FILE: usr/stack_decode_eagain.txt:319:
++[  801.802149] ? _raw_spin_unlock (./arch/x86/include/asm/preempt.h:95 ./include/linux/spinlock_api_smp.h:143 kernel/locking/spinlock.c:186) $
+
+ERROR: trailing whitespace
+#18955: FILE: usr/stack_decode_eagain.txt:320:
++[  801.802938] ? check_chain_key (kernel/locking/lockdep.c:3931) $
+
+ERROR: trailing whitespace
+#18956: FILE: usr/stack_decode_eagain.txt:321:
++[  801.803739] ? __pfx_get_page_from_freelist (mm/page_alloc.c:3052) $
+
+ERROR: trailing whitespace
+#18957: FILE: usr/stack_decode_eagain.txt:322:
++[  801.804712] ? __pfx_remove_migration_pte (mm/migrate.c:199) $
+
+ERROR: trailing whitespace
+#18958: FILE: usr/stack_decode_eagain.txt:323:
++[  801.805667] __alloc_pages (mm/page_alloc.c:4428) $
+
+ERROR: trailing whitespace
+#18959: FILE: usr/stack_decode_eagain.txt:324:
++[  801.806424] ? __pfx___up_read (kernel/locking/rwsem.c:1339) $
+
+ERROR: trailing whitespace
+#18960: FILE: usr/stack_decode_eagain.txt:325:
++[  801.807189] ? rmap_walk_anon (./include/linux/rmap.h:141 mm/rmap.c:2449) $
+
+ERROR: trailing whitespace
+#18961: FILE: usr/stack_decode_eagain.txt:326:
++[  801.807965] ? __pfx___alloc_pages (mm/page_alloc.c:4394) $
+
+ERROR: trailing whitespace
+#18962: FILE: usr/stack_decode_eagain.txt:327:
++[  801.808806] ? migrate_folio_undo_src (./include/linux/list.h:156 ./include/linux/list.h:183 ./include/linux/list.h:311 mm/migrate.c:1206) $
+
+ERROR: trailing whitespace
+#18963: FILE: usr/stack_decode_eagain.txt:328:
++[  801.809735] ? __pfx_migrate_folio_undo_src (mm/migrate.c:1197) $
+
+ERROR: trailing whitespace
+#18964: FILE: usr/stack_decode_eagain.txt:329:
++[  801.810739] ? __pfx_try_to_migrate (mm/rmap.c:2137) $
+
+ERROR: trailing whitespace
+#18965: FILE: usr/stack_decode_eagain.txt:330:
++[  801.811594] ? __pfx_remove_migration_pte (mm/migrate.c:199) $
+
+ERROR: trailing whitespace
+#18966: FILE: usr/stack_decode_eagain.txt:331:
++[  801.812549] migrate_pages_batch (mm/migrate.c:1266 mm/migrate.c:1817) $
+
+ERROR: trailing whitespace
+#18967: FILE: usr/stack_decode_eagain.txt:332:
++[  801.813402] ? __pfx_alloc_migration_target (mm/migrate.c:2159) $
+
+ERROR: trailing whitespace
+#18968: FILE: usr/stack_decode_eagain.txt:333:
++[  801.814411] ? __pfx_migrate_pages_batch (mm/migrate.c:1766) $
+
+ERROR: trailing whitespace
+#18969: FILE: usr/stack_decode_eagain.txt:334:
++[  801.815339] ? hlock_class (./arch/x86/include/asm/bitops.h:228 ./arch/x86/include/asm/bitops.h:240 ./include/asm-generic/bitops/instrumented-non-atomic.h:142 kernel/locking/lockdep.c:228) $
+
+ERROR: trailing whitespace
+#18970: FILE: usr/stack_decode_eagain.txt:335:
++[  801.816049] ? mark_lock (kernel/locking/lockdep.c:4655) $
+
+ERROR: trailing whitespace
+#18971: FILE: usr/stack_decode_eagain.txt:336:
++[  801.816741] ? __pfx___lock_acquire (kernel/locking/lockdep.c:4992) $
+
+ERROR: trailing whitespace
+#18972: FILE: usr/stack_decode_eagain.txt:337:
++[  801.817600] ? __pfx_mark_lock (kernel/locking/lockdep.c:4638) $
+
+ERROR: trailing whitespace
+#18973: FILE: usr/stack_decode_eagain.txt:338:
++[  801.818371] migrate_pages (mm/migrate.c:2017 mm/migrate.c:2105) $
+
+ERROR: trailing whitespace
+#18974: FILE: usr/stack_decode_eagain.txt:339:
++[  801.819124] ? __pfx_alloc_migration_target (mm/migrate.c:2159) $
+
+ERROR: trailing whitespace
+#18975: FILE: usr/stack_decode_eagain.txt:340:
++[  801.820109] ? __pfx_migrate_pages (mm/migrate.c:2060) $
+
+ERROR: trailing whitespace
+#18976: FILE: usr/stack_decode_eagain.txt:341:
++[  801.820954] ? mark_lock (kernel/locking/lockdep.c:4655) $
+
+ERROR: trailing whitespace
+#18977: FILE: usr/stack_decode_eagain.txt:342:
++[  801.821666] ? __pfx_mark_lock (kernel/locking/lockdep.c:4638) $
+
+ERROR: trailing whitespace
+#18978: FILE: usr/stack_decode_eagain.txt:343:
++[  801.822436] ? check_chain_key (kernel/locking/lockdep.c:3931) $
+
+ERROR: trailing whitespace
+#18979: FILE: usr/stack_decode_eagain.txt:344:
++[  801.823240] ? check_chain_key (kernel/locking/lockdep.c:3931) $
+
+ERROR: trailing whitespace
+#18980: FILE: usr/stack_decode_eagain.txt:345:
++[  801.824042] move_pages_and_store_status.isra.0 (mm/migrate.c:2221 mm/migrate.c:2319) $
+
+ERROR: trailing whitespace
+#18981: FILE: usr/stack_decode_eagain.txt:346:
++[  801.825098] ? __pfx_move_pages_and_store_status.isra.0 (mm/migrate.c:2309) $
+
+ERROR: trailing whitespace
+#18982: FILE: usr/stack_decode_eagain.txt:347:
++[  801.826273] ? lockdep_hardirqs_on_prepare (kernel/locking/lockdep.c:4299 kernel/locking/lockdep.c:4358 kernel/locking/lockdep.c:4310) $
+
+ERROR: trailing whitespace
+#18983: FILE: usr/stack_decode_eagain.txt:348:
++[  801.827266] ? _raw_spin_unlock_irq (./arch/x86/include/asm/irqflags.h:42 ./arch/x86/include/asm/irqflags.h:77 ./include/linux/spinlock_api_smp.h:159 kernel/locking/spinlock.c:202) $
+
+ERROR: trailing whitespace
+#18984: FILE: usr/stack_decode_eagain.txt:349:
++[  801.828127] kernel_move_pages (mm/migrate.c:2434 mm/migrate.c:2614) $
+
+ERROR: trailing whitespace
+#18985: FILE: usr/stack_decode_eagain.txt:350:
++[  801.828937] ? __pfx_kernel_move_pages (mm/migrate.c:2597) $
+
+ERROR: trailing whitespace
+#18986: FILE: usr/stack_decode_eagain.txt:351:
++[  801.829839] ? ksys_write (fs/read_write.c:639) $
+
+ERROR: trailing whitespace
+#18987: FILE: usr/stack_decode_eagain.txt:352:
++[  801.830541] ? __pfx_ksys_write (fs/read_write.c:627) $
+
+ERROR: trailing whitespace
+#18988: FILE: usr/stack_decode_eagain.txt:353:
++[  801.831323] __x64_sys_move_pages (mm/migrate.c:2623) $
+
+ERROR: trailing whitespace
+#18989: FILE: usr/stack_decode_eagain.txt:354:
++[  801.832146] do_syscall_64 (arch/x86/entry/common.c:50 arch/x86/entry/common.c:80) $
+
+ERROR: trailing whitespace
+#18990: FILE: usr/stack_decode_eagain.txt:355:
++[  801.832854] entry_SYSCALL_64_after_hwframe (arch/x86/entry/entry_64.S:120) $
+
+ERROR: trailing whitespace
+#18997: FILE: usr/stack_decode_eagain.txt:362:
++   3:   c3                      ret    $
+
+ERROR: trailing whitespace
+#18999: FILE: usr/stack_decode_eagain.txt:364:
++   b:   00 00 $
+
+ERROR: trailing whitespace
+#19000: FILE: usr/stack_decode_eagain.txt:365:
++   d:   f3 0f 1e fa             endbr64 $
+
+ERROR: trailing whitespace
+#19008: FILE: usr/stack_decode_eagain.txt:373:
++  28:   0f 05                   syscall $
+
+ERROR: trailing whitespace
+#19011: FILE: usr/stack_decode_eagain.txt:376:
++  32:   c3                      ret    $
+
+ERROR: trailing whitespace
+#19021: FILE: usr/stack_decode_eagain.txt:386:
++   8:   c3                      ret    $
+
+ERROR: trailing whitespace
+#19035: FILE: usr/stack_decode_eagain.txt:400:
++[  801.848333] RIP: 0010:__rmqueue_pcplist (./include/linux/list.h:195 ./include/linux/list.h:218 ./include/linux/list.h:229 mm/page_alloc.c:2710) $
+
+total: 332 errors, 379 warnings, 18612 lines checked
+
+NOTE: For some of the reported defects, checkpatch may be able to
+      mechanically convert to the typical style using --fix or --fix-inplace.
+
+NOTE: Whitespace errors detected.
+      You may wish to use scripts/cleanpatch or scripts/cleanfile
+
+changes.patch has style problems, please review.
+
+NOTE: If any of the errors are false positives, please report
+      them to the maintainer, see CHECKPATCH in MAINTAINERS.

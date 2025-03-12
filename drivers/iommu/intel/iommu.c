@@ -24,8 +24,6 @@
 #include <linux/tboot.h>
 #include <uapi/linux/iommufd.h>
 #include <linux/delay.h>
-
-
 #include "iommu.h"
 #include "../dma-iommu.h"
 #include "../irq_remapping.h"
@@ -36,23 +34,11 @@
 #include <linux/page_alias.h>
 #include <linux/debugfs.h>
 
-
-#define DAUBE_DBG 1 // Change this to 0 to disable debugging
-
-// Conditional Debugging Macro
-#if DAUBE_DBG
-#define makpitz_dbg(fmt, ...) pr_info(fmt, ##__VA_ARGS__)
-#else
-#define makpitz_dbg(fmt, ...)
-#endif
-
-int total_rmaps = 0;
-
-
-// pinmig
-
 static struct dentry *dir_tr, *file_tr;
-
+static unsigned long curr_pfn = 0;
+static struct dentry *dir, *file;
+static int sleep_time = 0;
+int total_rmaps;
 
 static ssize_t total_rmaps_read(struct file *filp, char __user *buffer, size_t len, loff_t *offset)
 {
@@ -60,7 +46,6 @@ static ssize_t total_rmaps_read(struct file *filp, char __user *buffer, size_t l
     int ret = snprintf(buf, sizeof(buf), "%d\n", total_rmaps);
     return simple_read_from_buffer(buffer, len, offset, buf, ret);
 }
-
 
 static ssize_t total_rmaps_write(struct file *filp, const char __user *buffer, size_t len, loff_t *offset)
 {
@@ -72,7 +57,6 @@ static const struct file_operations fops_tr = {
     .read = total_rmaps_read,
     .write = total_rmaps_write,
 };
-
 
 int __init page_alias_debugfs_init(void)
 {
@@ -89,8 +73,6 @@ int __init page_alias_debugfs_init(void)
         debugfs_remove(dir_tr);
         return -ENOMEM;
     }
-
-
     pr_info("page_alias debugfs interface initialized\n");
     return 0;
 }
@@ -102,23 +84,10 @@ void __exit page_alias_debugfs_exit(void)
     pr_info("page_alias debugfs interface removed\n");
 }
 
-
-
-
-// pinmig
-
-
-// pinmig - start
-
-static unsigned long curr_pfn = 0;
-static struct dentry *dir, *file;
-static int sleep_time = 0;
-
 static ssize_t sleep_time_read(struct file *filp, char __user *buffer, size_t len, loff_t *offset)
 {
     char buf[64];
     int ret;
-
     ret = snprintf(buf, sizeof(buf), "%d\n", sleep_time);
     return simple_read_from_buffer(buffer, len, offset, buf, ret);
 }
@@ -151,7 +120,6 @@ static const struct file_operations fops = {
     .write = sleep_time_write,
 };
 
-
 int __init iommu_pinmig_debugfs_init(void)
 {
     // Create the debugfs directory and file
@@ -160,15 +128,12 @@ int __init iommu_pinmig_debugfs_init(void)
         pr_err("Failed to create debugfs directory for iommu_pinmig :(\n");
         return -ENOMEM;
     }
-
     file = debugfs_create_file("sleep_time", 0666, dir, NULL, &fops);
     if (!file) {
         pr_err("Failed to create debugfs sleep_time file\n");
         debugfs_remove(dir);
         return -ENOMEM;
     }
-
-
     pr_info("iommu_pinmig debugfs interface initialized\n");
     return 0;
 }
@@ -179,11 +144,6 @@ void __exit iommu_pinmig_debugfs_exit(void)
     debugfs_remove(dir);
     pr_info("iommu_pinmig debugfs interface removed\n");
 }
-
-
-// pinmig - end
-
-
 
 #define ROOT_SIZE		VTD_PAGE_SIZE
 #define CONTEXT_SIZE		VTD_PAGE_SIZE
@@ -453,11 +413,6 @@ static int iommu_skip_te_disable;
 #define IDENTMAP_AZALIA		4
 
 const struct iommu_ops intel_iommu_ops;
-
-
-
-
-
 
 static bool translation_pre_enabled(struct intel_iommu *iommu)
 {
@@ -1333,8 +1288,6 @@ static void dma_pte_clear_level(struct dmar_domain *domain, int level,
 			alias_iommu_free_rmap(phys_pfn);			
 			
 			dma_clear_pte(pte);
-
-
 			if (!first_pte)
 				first_pte = pte;
 			last_pte = pte;
@@ -2407,13 +2360,15 @@ __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
 			if (largepage_lvl != 1)
 				pr_info("largepage_lvl != 1\n");
 
-			pte = pfn_to_dma_pte(domain, iov_pfn, &largepage_lvl, gfp);
+			pte = pfn_to_dma_pte(domain, iov_pfn, &largepage_lvl,
+					     gfp);
 			if (!pte)
 				return -ENOMEM;
 			first_pte = pte;
-			
+
 			lvl_pages = lvl_to_nr_pages(largepage_lvl);
 
+			/* It is large page*/
 			if (largepage_lvl > 1) {
 				unsigned long end_pfn;
 				unsigned long pages_to_remove;
@@ -3974,21 +3929,15 @@ int __init intel_iommu_init(void)
 	struct dmar_drhd_unit *drhd;
 	struct intel_iommu *iommu;
 
-
-	// pinmig 
-
-	pr_info("OMER: once intel_iommu_init\n");
 	int retv = iommu_pinmig_debugfs_init();
 	if (retv){
-		pr_info("Calling iommu_pinmig_debugfs_init from intel_iommu_init failed!!!!!!!!!");
+		pr_info("Calling iommu_pinmig_debugfs_init from intel_iommu_init failed");
 	}
 
 	retv = page_alias_debugfs_init();
 	if (retv){
-		pr_info("Calling page_alias_debugfs_init from intel_iommu_init failed!!!!!!!!!");
+		pr_info("Calling page_alias_debugfs_init from intel_iommu_init failed");
 	}
-
-	// pinmig
 
 	/*
 	 * Intel IOMMU is required for a TXT/tboot launch or platform
@@ -4363,9 +4312,6 @@ static int intel_iommu_map(struct iommu_domain *domain,
 		}
 		dmar_domain->max_addr = max_addr;
 	}
-	// pr_info("is iova equls: %llX, %llX\n", hpa, intel_iommu_iova_to_phys(domain, iova));
-	/* Round up size to next multiple of PAGE_SIZE if it and
-	   the low bits of hpa would take us onto the next page */
 	size = aligned_nrpages(hpa, size);
 	return __domain_mapping(dmar_domain, iova >> VTD_PAGE_SHIFT,
 				hpa >> VTD_PAGE_SHIFT, size, prot, gfp);
@@ -4405,7 +4351,6 @@ static size_t intel_iommu_unmap(struct iommu_domain *domain,
 	int level = 0;
 	pte = pfn_to_dma_pte(dmar_domain, iova >> VTD_PAGE_SHIFT, &level, GFP_ATOMIC);
 
-	
 	/* Cope with horrid API which requires us to unmap more than the
 	   size argument if it happens to be a large-page mapping. */
 	if (unlikely(!pfn_to_dma_pte(dmar_domain, iova >> VTD_PAGE_SHIFT,

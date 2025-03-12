@@ -50,12 +50,9 @@
 #include "megaraid_sas_fusion.h"
 #include "megaraid_sas.h"
 
-
-//PINMIG!
+static struct dentry *dir, *file1, *file2;
 static unsigned long curr_pfn = 0;
 static int sleep_time = 0;
-static struct dentry *dir, *file1, *file2;
-
 
 static ssize_t sleep_time_read2(struct file *filp, char __user *buffer, size_t len, loff_t *offset)
 {
@@ -149,13 +146,6 @@ void __exit megasas_debugfs_exit(void)
     debugfs_remove(dir);
     pr_info("megasas debugfs interface removed\n");
 }
-/* END OF OUR CODE FOR CONTROLING SLEEP (pinmig, PINMIG)*/
-/* END OF OUR CODE FOR CONTROLING SLEEP (pinmig, PINMIG)*/
-/* END OF OUR CODE FOR CONTROLING SLEEP (pinmig, PINMIG)*/
-/* END OF OUR CODE FOR CONTROLING SLEEP (pinmig, PINMIG)*/
-
-
-
 
 /*
  * Number of sectors per IO command
@@ -1851,14 +1841,12 @@ megasas_build_and_issue_cmd(struct megasas_instance *instance,
 			    struct scsi_cmnd *scmd)
 {
 	struct scatterlist *sg;
-    struct page *page;
-    // dma_addr_t dma_addr;
     unsigned long pfn = 0;
+    struct page *page;
 
     // Assuming single scatter-gather entry for simplicity
 	if (scmd)
     	sg = scsi_sglist(scmd);
-    // dma_addr = sg_dma_address(sg);
 	if (sg)
     	page = sg_page(sg);
 
@@ -1891,18 +1879,9 @@ megasas_build_and_issue_cmd(struct megasas_instance *instance,
 
 	struct timespec64 ts;
 	ktime_get_real_ts64(&ts);
-	trace_printk("MEGASAS: Current time before moving the head: %lld.%09ld seconds\n", (long long)ts.tv_sec, ts.tv_nsec);
-	trace_printk("MEGASAS: pfn = %lu\n", pfn);
-	// mdelay(sleep_time);
-		/* PINMIG*/
 	if (sleep_time > 0)
-		mdelay(sleep_time); //has to be delay, not sleep (pinmig)
-	// struct timespec64 ts;
-	// ktime_get_real_ts64(&ts);
-	// trace_printk("Moving head\n");
+		mdelay(sleep_time); //has to be delay, not sleep
 	ktime_get_real_ts64(&ts);
-	trace_printk("MEGASAS: Current time after moving the head: %lld.%09ld seconds\n", (long long)ts.tv_sec, ts.tv_nsec);
-	
 
 	/*
 	 * Issue the command to the FW
@@ -9124,7 +9103,6 @@ megasas_aen_polling(struct work_struct *work)
  */
 static int __init megasas_init(void)
 {
-	/* OUR CODE FOR CONTROLING SLEEP (pinmig, PINMIG)*/
 	int ret, ret2;
 	ret = megasas_debugfs_init();
 	ret2 = megasas_fusion_debugfs_init(); 
@@ -9132,8 +9110,6 @@ static int __init megasas_init(void)
 		pr_info("Calling megasas_debugfs_init from megaraid_sas_base failed!!!!!!!!!");
 		return ret;
 	}
-	/* OUR CODE FOR CONTROLING SLEEP (pinmig, PINMIG)*/
-
 	int rval;
 
 	/*
@@ -9258,9 +9234,7 @@ err_pcidrv:
  */
 static void __exit megasas_exit(void)
 {
-	/* OUR CODE FOR CONTROLING SLEEP (pinmig, PINMIG)*/
 	megasas_debugfs_exit();
-	/* OUR CODE FOR CONTROLING SLEEP (pinmig, PINMIG)*/
 	driver_remove_file(&megasas_pci_driver.driver,
 			   &driver_attr_dbg_lvl);
 	driver_remove_file(&megasas_pci_driver.driver,

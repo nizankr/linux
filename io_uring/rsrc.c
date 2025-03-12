@@ -672,7 +672,6 @@ int io_queue_rsrc_removal(struct io_rsrc_data *data, unsigned idx, void *rsrc)
 
 void __io_sqe_files_unregister(struct io_ring_ctx *ctx)
 {
-	pr_info("in %s", __func__);
 	int i;
 
 	for (i = 0; i < ctx->nr_user_files; i++) {
@@ -703,7 +702,6 @@ void __io_sqe_files_unregister(struct io_ring_ctx *ctx)
 
 int io_sqe_files_unregister(struct io_ring_ctx *ctx)
 {
-	pr_info("in %s", __func__);
 	unsigned nr = ctx->nr_user_files;
 	int ret;
 
@@ -1080,7 +1078,6 @@ static int io_sqe_buffer_register(struct io_ring_ctx *ctx, struct iovec *iov,
 				  struct io_mapped_ubuf **pimu,
 				  struct page **last_hpage)
 {
-	pr_info("io_sqe_buffer_register");
 	struct io_mapped_ubuf *imu = NULL;
 	struct page **pages = NULL;
 	unsigned long off;
@@ -1147,8 +1144,6 @@ static int io_sqe_buffer_register(struct io_ring_ctx *ctx, struct iovec *iov,
 	ret = 0;
 
 	if (folio) {
-		// bvec_set_page(&imu->bvec[0], pages[0], size, off);
-		// imu->kvec[0].iov_base = kmap(pages[0]) + off;
 		imu->kvec[0].iov_base = alias_vmap(pages[0]) + off;
 		imu->kvec[0].iov_len = size;
 		goto done;
@@ -1157,7 +1152,6 @@ static int io_sqe_buffer_register(struct io_ring_ctx *ctx, struct iovec *iov,
 		size_t vec_len;
 
 		vec_len = min_t(size_t, size, PAGE_SIZE - off);
-		// bvec_set_page(&imu->bvec[i], pages[i], vec_len, off);
 		imu->kvec[i].iov_base = alias_vmap(pages[i]) + off;
 		imu->kvec[i].iov_len = vec_len;
 		off = 0;

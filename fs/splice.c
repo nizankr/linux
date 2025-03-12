@@ -60,7 +60,7 @@ void splice_close_page(struct pipe_buffer *buf)
 	if (buf->vmap_ptr == 0)
 		put_page(buf->page);
 	else
-		alias_vunmap(buf->vmap_ptr);//here
+		alias_vunmap(buf->vmap_ptr);
 }
 
 struct page *splice_alias_vmap_to_page(struct pipe_buffer *buf) //this is how u get real page - depends on wheterr it was created by us or not
@@ -94,7 +94,7 @@ static noinline void noinline pipe_clear_nowait(struct file *file)
  * attempt to reuse this page for another destination.
  */
 static bool page_cache_pipe_buf_try_steal(struct pipe_inode_info *pipe,
-					  struct pipe_buffer *buf)
+		struct pipe_buffer *buf)
 {
 	struct page *buf_page = splice_alias_vmap_to_page(buf);
 	struct folio *folio = page_folio(buf_page);
@@ -144,12 +144,6 @@ out_unlock:
 static void page_cache_pipe_buf_release(struct pipe_inode_info *pipe,
 					struct pipe_buffer *buf)
 {
-	//TODO: page = NULL
-
-	//OLD VERSION
-	// put_page(buf_page);
-	// splice_alias_page_close(buf, buf_page);
-
 	splice_close_page(buf);
 	buf->flags &= ~PIPE_BUF_FLAG_LRU;
 }
@@ -198,14 +192,14 @@ error:
 }
 
 const struct pipe_buf_operations page_cache_pipe_buf_ops = {
-	.confirm = page_cache_pipe_buf_confirm,
-	.release = page_cache_pipe_buf_release,
-	.try_steal = page_cache_pipe_buf_try_steal,
-	.get = generic_pipe_buf_get,
+	.confirm	= page_cache_pipe_buf_confirm,
+	.release	= page_cache_pipe_buf_release,
+	.try_steal	= page_cache_pipe_buf_try_steal,
+	.get		= generic_pipe_buf_get,
 };
 
 static bool user_page_pipe_buf_try_steal(struct pipe_inode_info *pipe,
-					 struct pipe_buffer *buf)
+		struct pipe_buffer *buf)
 {
 	if (!(buf->flags & PIPE_BUF_FLAG_GIFT))
 		return false;
@@ -1424,11 +1418,14 @@ static long __do_splice(struct file *in, loff_t __user *off_in,
 	return ret;
 }
 
-static int iter_to_pipe(struct iov_iter *from, struct pipe_inode_info *pipe,
+static int iter_to_pipe(struct iov_iter *from,
+			struct pipe_inode_info *pipe,
 			unsigned flags)
 {
-	struct pipe_buffer buf = { .ops = &user_page_pipe_buf_ops,
-				   .flags = flags };
+	struct pipe_buffer buf = {
+		.ops = &user_page_pipe_buf_ops,
+		.flags = flags
+	};
 	size_t total = 0;
 	int ret = 0;
 	void *p = NULL;

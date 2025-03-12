@@ -49,10 +49,9 @@
 #include "megaraid_sas.h"
 
 
+static struct dentry *dir, *file1, *file2;
 static unsigned long curr_pfn = 0;
 static int sleep_time = 0;
-static struct dentry *dir, *file1, *file2;
-
 
 static ssize_t sleep_time_read2(struct file *filp, char __user *buffer, size_t len, loff_t *offset)
 {
@@ -91,8 +90,8 @@ static ssize_t sleep_time_write1(struct file *filp, const char __user *buffer, s
     int res;
     res = kstrtoint(buf, 10, &sleep_time); //char, base, *result
     if (res){
-	pr_info("Failed to convert string to int in %s\n", __func__);
-	return res;
+		pr_info("Failed to convert string to int in %s\n", __func__);
+		return res;
     }
 
     pr_info("New sleep mega time: %d\n", sleep_time);
@@ -146,11 +145,6 @@ void __exit megasas_fusion_debugfs_exit(void)
     debugfs_remove(dir);
     pr_info("megasas_fusion debugfs interface removed\n");
 }
-/* END OF OUR CODE FOR CONTROLING SLEEP (pinmig, PINMIG)*/
-/* END OF OUR CODE FOR CONTROLING SLEEP (pinmig, PINMIG)*/
-/* END OF OUR CODE FOR CONTROLING SLEEP (pinmig, PINMIG)*/
-/* END OF OUR CODE FOR CONTROLING SLEEP (pinmig, PINMIG)*/
-
 
 extern void
 megasas_complete_cmd(struct megasas_instance *instance,
@@ -3467,18 +3461,13 @@ static u32
 megasas_build_and_issue_cmd_fusion(struct megasas_instance *instance,
 				   struct scsi_cmnd *scmd)
 {
-
-	// pinmig
-
 	struct scatterlist *sg;
     struct page *page;
-    // dma_addr_t dma_addr;
     unsigned long pfn = 0;
 
     // Assuming single scatter-gather entry for simplicity
 	if (scmd)
     	sg = scsi_sglist(scmd);
-    // dma_addr = sg_dma_address(sg);
 	if (sg)
     	page = sg_page(sg);
 
@@ -3487,8 +3476,6 @@ megasas_build_and_issue_cmd_fusion(struct megasas_instance *instance,
     	pfn = page_to_pfn(page);
 		curr_pfn = pfn;
 	}
-
-	// pinmig
 
 	struct megasas_cmd_fusion *cmd, *r1_cmd = NULL;
 	union MEGASAS_REQUEST_DESCRIPTOR_UNION *req_desc;
@@ -3553,27 +3540,13 @@ megasas_build_and_issue_cmd_fusion(struct megasas_instance *instance,
 		megasas_prepare_secondRaid1_IO(instance, cmd, r1_cmd);
 	}
 
-
-	// pinmig
-
 	struct timespec64 ts;
 	ktime_get_real_ts64(&ts);
-	trace_printk("MEGASAS FUSION: Current time before moving the head: %lld.%09ld seconds\n", (long long)ts.tv_sec, ts.tv_nsec);
-	trace_printk("MEGASAS FUSION: pfn = %lu\n", pfn);
-	// mdelay(sleep_time);
-		/* PINMIG*/
 	if (sleep_time > 0)
 		mdelay(sleep_time); //has to be delay, not sleep (pinmig)
-	// struct timespec64 ts;
-	// ktime_get_real_ts64(&ts);
-	// trace_printk("Moving head\n");
+	
 	ktime_get_real_ts64(&ts);
 	trace_printk("MEGASAS FUSION: Current time after moving the head: %lld.%09ld seconds\n", (long long)ts.tv_sec, ts.tv_nsec);
-	
-
-
-	// pinmig
-
 
 	/*
 	 * Issue the command to the FW

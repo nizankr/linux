@@ -763,11 +763,6 @@ struct dma_pte {
 	u64 val;
 };
 
-// static inline bool dma_pte_get_write(struct dma_pte *pte)
-// {
-//        return (pte->val & DMA_PTE_WRITE);
-// }
-
 static inline u64 dma_pte_young_mask(bool first_level) 
 { 
 	return first_level ? DMA_FL_PTE_ACCESS : DMA_SL_PTE_ACCESS; 

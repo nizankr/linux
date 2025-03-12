@@ -116,7 +116,9 @@ int get_alias_refcount(struct page *page)
 	int kernel_refs = atomic_read(&(page_alias->kernel_ref_count));
 	int iommu_refs = page_alias->iommu_ref_count;
 	page_ext_put(page_ext);
-	return (kernel_refs != 0) ? kernel_refs : iommu_refs ; // We are only returning iommu_refs if kernel_refs is zero, because then the only mapping is the IOMMU, as we assumed.
+	// We are only returning iommu_refs if kernel_refs is zero, 
+	// because then the only mapping is the IOMMU, as we assumed.
+	return (kernel_refs != 0) ? kernel_refs : iommu_refs ; 
 }
 
 /* 
@@ -198,7 +200,8 @@ void *get_alias_rmap(struct page *page){
 
 /*
  * Function: alias_page_create
- * Description: This function is used to create a vmap for the page (only one vmap per page).
+ * Description: This function is used to create a 
+ * vmap for the page (only one vmap per page).
  * Parameters:
  *  page: The page to create the alias for.
  */

@@ -136,6 +136,20 @@ DEFINE_EVENT(migration_pte, remove_migration_pte,
 	TP_ARGS(addr, pte, order)
 );
 
+TRACE_EVENT(pinmig_pfn,
+	TP_PROTO(unsigned long pfn),
+	TP_ARGS(pfn),
+
+	TP_STRUCT__entry(
+		__field(	unsigned long,		pfn)
+	),
+
+	TP_fast_assign(
+		__entry->pfn	= pfn;),
+
+	TP_printk("pfn = %lu\n",		__entry->pfn)
+);
+
 #endif /* _TRACE_MIGRATE_H */
 
 /* This part must be outside protection */

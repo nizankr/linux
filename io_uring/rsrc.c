@@ -9,7 +9,7 @@
 #include <linux/hugetlb.h>
 #include <linux/compat.h>
 #include <linux/io_uring.h>
-
+#include <linux/page_alias.h>
 #include <uapi/linux/io_uring.h>
 
 #include "io_uring.h"
@@ -139,8 +139,10 @@ static void io_buffer_unmap(struct io_ring_ctx *ctx, struct io_mapped_ubuf **slo
 	unsigned int i;
 
 	if (imu != &dummy_ubuf) {
-		for (i = 0; i < imu->nr_bvecs; i++)
-			unpin_user_page(imu->bvec[i].bv_page);
+		for (i = 0; i < imu->nr_kvecs; i++){
+			unpin_user_page(alias_vmap_to_page(imu->kvec[i].iov_base));
+			//kunmap
+		}
 		if (imu->acct_pages)
 			io_unaccount_mem(ctx, imu->acct_pages);
 		kvfree(imu);
@@ -670,6 +672,7 @@ int io_queue_rsrc_removal(struct io_rsrc_data *data, unsigned idx, void *rsrc)
 
 void __io_sqe_files_unregister(struct io_ring_ctx *ctx)
 {
+	pr_info("in %s", __func__);
 	int i;
 
 	for (i = 0; i < ctx->nr_user_files; i++) {
@@ -700,6 +703,7 @@ void __io_sqe_files_unregister(struct io_ring_ctx *ctx)
 
 int io_sqe_files_unregister(struct io_ring_ctx *ctx)
 {
+	pr_info("in %s", __func__);
 	unsigned nr = ctx->nr_user_files;
 	int ret;
 
@@ -990,10 +994,10 @@ static bool headpage_already_acct(struct io_ring_ctx *ctx, struct page **pages,
 	for (i = 0; i < ctx->nr_user_bufs; i++) {
 		struct io_mapped_ubuf *imu = ctx->user_bufs[i];
 
-		for (j = 0; j < imu->nr_bvecs; j++) {
-			if (!PageCompound(imu->bvec[j].bv_page))
+		for (j = 0; j < imu->nr_kvecs; j++) {
+			if (!PageCompound(alias_vmap_to_page(imu->kvec[j].iov_base)))
 				continue;
-			if (compound_head(imu->bvec[j].bv_page) == hpage)
+			if (compound_head(alias_vmap_to_page(imu->kvec[j].iov_base)) == hpage)
 				return true;
 		}
 	}
@@ -1076,6 +1080,7 @@ static int io_sqe_buffer_register(struct io_ring_ctx *ctx, struct iovec *iov,
 				  struct io_mapped_ubuf **pimu,
 				  struct page **last_hpage)
 {
+	pr_info("io_sqe_buffer_register");
 	struct io_mapped_ubuf *imu = NULL;
 	struct page **pages = NULL;
 	unsigned long off;
@@ -1122,7 +1127,7 @@ static int io_sqe_buffer_register(struct io_ring_ctx *ctx, struct iovec *iov,
 		}
 	}
 
-	imu = kvmalloc(struct_size(imu, bvec, nr_pages), GFP_KERNEL);
+	imu = kvmalloc(struct_size(imu, kvec, nr_pages), GFP_KERNEL);
 	if (!imu)
 		goto done;
 
@@ -1137,19 +1142,24 @@ static int io_sqe_buffer_register(struct io_ring_ctx *ctx, struct iovec *iov,
 	/* store original address for later verification */
 	imu->ubuf = (unsigned long) iov->iov_base;
 	imu->ubuf_end = imu->ubuf + iov->iov_len;
-	imu->nr_bvecs = nr_pages;
+	imu->nr_kvecs = nr_pages;
 	*pimu = imu;
 	ret = 0;
 
 	if (folio) {
-		bvec_set_page(&imu->bvec[0], pages[0], size, off);
+		// bvec_set_page(&imu->bvec[0], pages[0], size, off);
+		// imu->kvec[0].iov_base = kmap(pages[0]) + off;
+		imu->kvec[0].iov_base = alias_vmap(pages[0]) + off;
+		imu->kvec[0].iov_len = size;
 		goto done;
 	}
 	for (i = 0; i < nr_pages; i++) {
 		size_t vec_len;
 
 		vec_len = min_t(size_t, size, PAGE_SIZE - off);
-		bvec_set_page(&imu->bvec[i], pages[i], vec_len, off);
+		// bvec_set_page(&imu->bvec[i], pages[i], vec_len, off);
+		imu->kvec[i].iov_base = alias_vmap(pages[i]) + off;
+		imu->kvec[i].iov_len = vec_len;
 		off = 0;
 		size -= vec_len;
 	}
@@ -1240,7 +1250,7 @@ int io_import_fixed(int ddir, struct iov_iter *iter,
 	 * and advance us to the beginning.
 	 */
 	offset = buf_addr - imu->ubuf;
-	iov_iter_bvec(iter, ddir, imu->bvec, imu->nr_bvecs, offset + len);
+	iov_iter_kvec(iter, ddir, imu->kvec, imu->nr_kvecs, offset + len);
 
 	if (offset) {
 		/*
@@ -1259,28 +1269,28 @@ int io_import_fixed(int ddir, struct iov_iter *iter,
 		 * since we can just skip the first segment, which may not
 		 * be PAGE_SIZE aligned.
 		 */
-		const struct bio_vec *bvec = imu->bvec;
+		const struct kvec *kvec = imu->kvec;
 
-		if (offset <= bvec->bv_len) {
+		if (offset <= kvec->iov_len) {
 			/*
 			 * Note, huge pages buffers consists of one large
 			 * bvec entry and should always go this way. The other
 			 * branch doesn't expect non PAGE_SIZE'd chunks.
 			 */
-			iter->bvec = bvec;
-			iter->nr_segs = bvec->bv_len;
+			iter->kvec = kvec;
+			iter->nr_segs = kvec->iov_len;
 			iter->count -= offset;
 			iter->iov_offset = offset;
 		} else {
 			unsigned long seg_skip;
 
 			/* skip first vec */
-			offset -= bvec->bv_len;
+			offset -= kvec->iov_len;
 			seg_skip = 1 + (offset >> PAGE_SHIFT);
 
-			iter->bvec = bvec + seg_skip;
+			iter->kvec = kvec + seg_skip;
 			iter->nr_segs -= seg_skip;
-			iter->count -= bvec->bv_len + offset;
+			iter->count -= kvec->iov_len + offset;
 			iter->iov_offset = offset & ~PAGE_MASK;
 		}
 	}

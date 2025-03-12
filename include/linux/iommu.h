@@ -14,12 +14,13 @@
 #include <linux/err.h>
 #include <linux/of.h>
 #include <uapi/linux/iommu.h>
+#include <linux/export.h>
 
-#define IOMMU_READ	(1 << 0)
-#define IOMMU_WRITE	(1 << 1)
-#define IOMMU_CACHE	(1 << 2) /* DMA cache coherency */
-#define IOMMU_NOEXEC	(1 << 3)
-#define IOMMU_MMIO	(1 << 4) /* e.g. things like MSI doorbells */
+#define IOMMU_READ (1 << 0)
+#define IOMMU_WRITE (1 << 1)
+#define IOMMU_CACHE (1 << 2) /* DMA cache coherency */
+#define IOMMU_NOEXEC (1 << 3)
+#define IOMMU_MMIO (1 << 4) /* e.g. things like MSI doorbells */
 /*
  * Where the bus hardware includes a privilege level as part of its access type
  * markings, and certain devices are capable of issuing transactions marked as
@@ -344,7 +345,7 @@ struct iommu_domain_ops {
 	size_t (*unmap_pages)(struct iommu_domain *domain, unsigned long iova,
 			      size_t pgsize, size_t pgcount,
 			      struct iommu_iotlb_gather *iotlb_gather);
-
+	int (*migrate_page)(struct iommu_domain *domain, unsigned long pfn, struct folio *new_folio, bool prepare);
 	void (*flush_iotlb_all)(struct iommu_domain *domain);
 	void (*iotlb_sync_map)(struct iommu_domain *domain, unsigned long iova,
 			       size_t size);

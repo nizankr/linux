@@ -27,7 +27,6 @@
 #include <linux/mm_inline.h>
 #include <linux/swap.h>
 #include <linux/writeback.h>
-#include <linux/export.h>
 #include <linux/syscalls.h>
 #include <linux/uio.h>
 #include <linux/fsnotify.h>
@@ -36,6 +35,16 @@
 #include <linux/net.h>
 #include <linux/socket.h>
 #include <linux/sched/signal.h>
+#include <linux/errno.h>
+#include <linux/stddef.h>
+#include <linux/slab.h>
+#include <linux/export.h>
+#include <linux/string.h>
+#include <linux/relay.h>
+#include <linux/vmalloc.h>
+#include <linux/mm.h>
+#include <linux/cpu.h>
+#include <linux/page_alias.h>
 
 #include "internal.h"
 
@@ -45,6 +54,29 @@
  * here if set to avoid blocking other users of this pipe if splice is
  * being done on it.
  */
+
+void splice_close_page(struct pipe_buffer *buf)
+{
+	if (buf->vmap_ptr == 0)
+		put_page(buf->page);
+	else
+		alias_vunmap(buf->vmap_ptr);//here
+}
+
+struct page *splice_alias_vmap_to_page(struct pipe_buffer *buf) //this is how u get real page - depends on wheterr it was created by us or not
+{
+	if (buf->vmap_ptr == 0)
+		return buf->page;
+	return alias_vmap_to_page(buf->vmap_ptr);
+}
+
+void splice_alias_page_close(struct pipe_buffer *buf, struct page *page)
+{
+	if (buf->vmap_ptr == 0)
+		return;
+	alias_page_close(page);
+}
+
 static noinline void noinline pipe_clear_nowait(struct file *file)
 {
 	fmode_t fmode = READ_ONCE(file->f_mode);
@@ -62,9 +94,10 @@ static noinline void noinline pipe_clear_nowait(struct file *file)
  * attempt to reuse this page for another destination.
  */
 static bool page_cache_pipe_buf_try_steal(struct pipe_inode_info *pipe,
-		struct pipe_buffer *buf)
+					  struct pipe_buffer *buf)
 {
-	struct folio *folio = page_folio(buf->page);
+	struct page *buf_page = splice_alias_vmap_to_page(buf);
+	struct folio *folio = page_folio(buf_page);
 	struct address_space *mapping;
 
 	folio_lock(folio);
@@ -92,9 +125,11 @@ static bool page_cache_pipe_buf_try_steal(struct pipe_inode_info *pipe,
 		 */
 		if (remove_mapping(mapping, folio)) {
 			buf->flags |= PIPE_BUF_FLAG_LRU;
+			splice_alias_page_close(buf, buf_page);
 			return true;
 		}
 	}
+	splice_alias_page_close(buf, buf_page);
 
 	/*
 	 * Raced with truncate or failed to remove folio from current
@@ -102,13 +137,20 @@ static bool page_cache_pipe_buf_try_steal(struct pipe_inode_info *pipe,
 	 */
 out_unlock:
 	folio_unlock(folio);
+	splice_alias_page_close(buf, buf_page);
 	return false;
 }
 
 static void page_cache_pipe_buf_release(struct pipe_inode_info *pipe,
 					struct pipe_buffer *buf)
 {
-	put_page(buf->page);
+	//TODO: page = NULL
+
+	//OLD VERSION
+	// put_page(buf_page);
+	// splice_alias_page_close(buf, buf_page);
+
+	splice_close_page(buf);
 	buf->flags &= ~PIPE_BUF_FLAG_LRU;
 }
 
@@ -119,7 +161,8 @@ static void page_cache_pipe_buf_release(struct pipe_inode_info *pipe,
 static int page_cache_pipe_buf_confirm(struct pipe_inode_info *pipe,
 				       struct pipe_buffer *buf)
 {
-	struct folio *folio = page_folio(buf->page);
+	struct page *buf_page = splice_alias_vmap_to_page(buf);
+	struct folio *folio = page_folio(buf_page);
 	int err;
 
 	if (!folio_test_uptodate(folio)) {
@@ -145,22 +188,24 @@ static int page_cache_pipe_buf_confirm(struct pipe_inode_info *pipe,
 		/* Folio is ok after all, we are done */
 		folio_unlock(folio);
 	}
-
+	splice_alias_page_close(buf, buf_page);
 	return 0;
+
 error:
 	folio_unlock(folio);
+	splice_alias_page_close(buf, buf_page);
 	return err;
 }
 
 const struct pipe_buf_operations page_cache_pipe_buf_ops = {
-	.confirm	= page_cache_pipe_buf_confirm,
-	.release	= page_cache_pipe_buf_release,
-	.try_steal	= page_cache_pipe_buf_try_steal,
-	.get		= generic_pipe_buf_get,
+	.confirm = page_cache_pipe_buf_confirm,
+	.release = page_cache_pipe_buf_release,
+	.try_steal = page_cache_pipe_buf_try_steal,
+	.get = generic_pipe_buf_get,
 };
 
 static bool user_page_pipe_buf_try_steal(struct pipe_inode_info *pipe,
-		struct pipe_buffer *buf)
+					 struct pipe_buffer *buf)
 {
 	if (!(buf->flags & PIPE_BUF_FLAG_GIFT))
 		return false;
@@ -214,7 +259,7 @@ ssize_t splice_to_pipe(struct pipe_inode_info *pipe,
 
 	while (!pipe_full(head, tail, pipe->max_usage)) {
 		struct pipe_buffer *buf = &pipe->bufs[head & mask];
-
+		buf->vmap_ptr = 0;
 		buf->page = spd->pages[page_nr];
 		buf->offset = spd->partial[page_nr].offset;
 		buf->len = spd->partial[page_nr].len;
@@ -1379,17 +1424,14 @@ static long __do_splice(struct file *in, loff_t __user *off_in,
 	return ret;
 }
 
-static int iter_to_pipe(struct iov_iter *from,
-			struct pipe_inode_info *pipe,
+static int iter_to_pipe(struct iov_iter *from, struct pipe_inode_info *pipe,
 			unsigned flags)
 {
-	struct pipe_buffer buf = {
-		.ops = &user_page_pipe_buf_ops,
-		.flags = flags
-	};
+	struct pipe_buffer buf = { .ops = &user_page_pipe_buf_ops,
+				   .flags = flags };
 	size_t total = 0;
 	int ret = 0;
-
+	void *p = NULL;
 	while (iov_iter_count(from)) {
 		struct page *pages[16];
 		ssize_t left;
@@ -1403,10 +1445,12 @@ static int iter_to_pipe(struct iov_iter *from,
 		}
 
 		n = DIV_ROUND_UP(left + start, PAGE_SIZE);
-		for (i = 0; i < n; i++) {
-			int size = min_t(int, left, PAGE_SIZE - start);
 
-			buf.page = pages[i];
+		for (i = 0; i < n; i++) {
+			p = alias_vmap(pages[i]);
+			int size = min_t(int, left, PAGE_SIZE - start);
+			buf.vmap_ptr = p;
+			buf.page = NULL;
 			buf.offset = start;
 			buf.len = size;
 			ret = add_to_pipe(pipe, &buf);
@@ -1414,7 +1458,7 @@ static int iter_to_pipe(struct iov_iter *from,
 				iov_iter_revert(from, left);
 				// this one got dropped by add_to_pipe()
 				while (++i < n)
-					put_page(pages[i]);
+					splice_close_page(&buf);
 				goto out;
 			}
 			total += ret;
@@ -1429,7 +1473,7 @@ out:
 static int pipe_to_user(struct pipe_inode_info *pipe, struct pipe_buffer *buf,
 			struct splice_desc *sd)
 {
-	int n = copy_page_to_iter(buf->page, buf->offset, sd->len, sd->u.data);
+	int n = copy_to_iter(buf->vmap_ptr + buf->offset, sd->len, sd->u.data);
 	return n == sd->len ? n : -EFAULT;
 }
 

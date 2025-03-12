@@ -10,6 +10,7 @@
 #include <linux/page_idle.h>
 #include <linux/page_table_check.h>
 #include <linux/rcupdate.h>
+#include <linux/page_alias.h>
 
 /*
  * struct page extension
@@ -84,6 +85,9 @@ static struct page_ext_operations *page_ext_ops[] __initdata = {
 #endif
 #ifdef CONFIG_PAGE_TABLE_CHECK
 	&page_table_check_ops,
+#endif
+#ifdef CONFIG_PAGE_ALIAS
+        &page_alias_ops,
 #endif
 };
 

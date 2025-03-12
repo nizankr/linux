@@ -23,6 +23,8 @@
 #include <linux/syscore_ops.h>
 #include <linux/tboot.h>
 #include <uapi/linux/iommufd.h>
+#include <linux/delay.h>
+
 
 #include "iommu.h"
 #include "../dma-iommu.h"
@@ -31,6 +33,157 @@
 #include "pasid.h"
 #include "cap_audit.h"
 #include "perfmon.h"
+#include <linux/page_alias.h>
+#include <linux/debugfs.h>
+
+
+#define DAUBE_DBG 1 // Change this to 0 to disable debugging
+
+// Conditional Debugging Macro
+#if DAUBE_DBG
+#define makpitz_dbg(fmt, ...) pr_info(fmt, ##__VA_ARGS__)
+#else
+#define makpitz_dbg(fmt, ...)
+#endif
+
+int total_rmaps = 0;
+
+
+// pinmig
+
+static struct dentry *dir_tr, *file_tr;
+
+
+static ssize_t total_rmaps_read(struct file *filp, char __user *buffer, size_t len, loff_t *offset)
+{
+    char buf[64];
+    int ret = snprintf(buf, sizeof(buf), "%d\n", total_rmaps);
+    return simple_read_from_buffer(buffer, len, offset, buf, ret);
+}
+
+
+static ssize_t total_rmaps_write(struct file *filp, const char __user *buffer, size_t len, loff_t *offset)
+{
+    return 0;
+}
+
+static const struct file_operations fops_tr = {
+    .owner = THIS_MODULE,
+    .read = total_rmaps_read,
+    .write = total_rmaps_write,
+};
+
+
+int __init page_alias_debugfs_init(void)
+{
+    // Create the debugfs directory and file
+    dir_tr = debugfs_create_dir("page_alias", NULL);
+    if (!dir_tr) {
+        pr_err("Failed to create debugfs directory for page_alias :(\n");
+        return -ENOMEM;
+    }
+
+    file_tr = debugfs_create_file("total_rmaps", 0666, dir_tr, NULL, &fops_tr);
+    if (!file_tr) {
+        pr_err("Failed to create debugfs total_rmaps file\n");
+        debugfs_remove(dir_tr);
+        return -ENOMEM;
+    }
+
+
+    pr_info("page_alias debugfs interface initialized\n");
+    return 0;
+}
+
+void __exit page_alias_debugfs_exit(void)
+{
+    debugfs_remove(file_tr);
+    debugfs_remove(dir_tr);
+    pr_info("page_alias debugfs interface removed\n");
+}
+
+
+
+
+// pinmig
+
+
+// pinmig - start
+
+static unsigned long curr_pfn = 0;
+static struct dentry *dir, *file;
+static int sleep_time = 0;
+
+static ssize_t sleep_time_read(struct file *filp, char __user *buffer, size_t len, loff_t *offset)
+{
+    char buf[64];
+    int ret;
+
+    ret = snprintf(buf, sizeof(buf), "%d\n", sleep_time);
+    return simple_read_from_buffer(buffer, len, offset, buf, ret);
+}
+
+static ssize_t sleep_time_write(struct file *filp, const char __user *buffer, size_t len, loff_t *offset)
+{
+    char buf[64];
+
+    if (len > sizeof(buf) - 1)
+        return -EINVAL;
+
+    if (copy_from_user(buf, buffer, len))
+        return -EFAULT;
+
+    buf[len] = '\0';
+    int res;
+    res = kstrtoint(buf, 10, &sleep_time); //char, base, *result
+    if (res){
+	pr_info("Failed to convert string to int in %s\n", __func__);
+	return res;
+    }
+
+    pr_info("New sleep mega time: %d\n", sleep_time);
+    return len;
+}
+
+static const struct file_operations fops = {
+    .owner = THIS_MODULE,
+    .read = sleep_time_read,
+    .write = sleep_time_write,
+};
+
+
+int __init iommu_pinmig_debugfs_init(void)
+{
+    // Create the debugfs directory and file
+    dir = debugfs_create_dir("iommu_pinmig", NULL);
+    if (!dir) {
+        pr_err("Failed to create debugfs directory for iommu_pinmig :(\n");
+        return -ENOMEM;
+    }
+
+    file = debugfs_create_file("sleep_time", 0666, dir, NULL, &fops);
+    if (!file) {
+        pr_err("Failed to create debugfs sleep_time file\n");
+        debugfs_remove(dir);
+        return -ENOMEM;
+    }
+
+
+    pr_info("iommu_pinmig debugfs interface initialized\n");
+    return 0;
+}
+
+void __exit iommu_pinmig_debugfs_exit(void)
+{
+    debugfs_remove(file);
+    debugfs_remove(dir);
+    pr_info("iommu_pinmig debugfs interface removed\n");
+}
+
+
+// pinmig - end
+
+
 
 #define ROOT_SIZE		VTD_PAGE_SIZE
 #define CONTEXT_SIZE		VTD_PAGE_SIZE
@@ -66,7 +219,7 @@
 /* page table handling */
 #define LEVEL_STRIDE		(9)
 #define LEVEL_MASK		(((u64)1 << LEVEL_STRIDE) - 1)
-
+static phys_addr_t intel_iommu_iova_to_phys(struct iommu_domain *domain, dma_addr_t iova);
 static inline int agaw_to_level(int agaw)
 {
 	return agaw + 2;
@@ -300,6 +453,11 @@ static int iommu_skip_te_disable;
 #define IDENTMAP_AZALIA		4
 
 const struct iommu_ops intel_iommu_ops;
+
+
+
+
+
 
 static bool translation_pre_enabled(struct intel_iommu *iommu)
 {
@@ -629,6 +787,25 @@ struct context_entry *iommu_context_addr(struct intel_iommu *iommu, u8 bus,
 	return &context[devfn];
 }
 
+static bool intel_is_migration_supported(struct intel_iommu *iommu, struct dmar_domain *domain){
+	/* If a read-write buffer is used, we would not always see the 
+	 *
+	 * dirty bit change, so our solution wouldn't work
+	 */
+
+	if (rwbf_quirk || cap_rwbf(iommu->cap)) 
+		return false;
+
+     	/* Require also page-walk coherency to ensure dirty-bit tracking. */ 
+	if (!iommu_paging_structure_coherency(iommu))
+		return false; 
+
+	/* We do need support for dirty-bit tracking. */ 
+	if (!domain->use_first_level && !ecap_slads(iommu->ecap)) 
+		return false; 
+
+	return true;
+}
 /**
  * is_downstream_to_pci_bridge - test if a device belongs to the PCI
  *				 sub-hierarchy of a candidate PCI-PCI bridge
@@ -1143,7 +1320,21 @@ static void dma_pte_clear_level(struct dmar_domain *domain, int level,
 			if (level > 1 && !dma_pte_superpage(pte))
 				dma_pte_list_pagetables(domain, level - 1, pte, freelist);
 
+
+			unsigned long phys_pfn = dma_pte_addr(pte) >> VTD_PAGE_SHIFT;
+			char buf[65];  /* 64 bits + null terminator */
+			int i;
+
+			for (i = 63; i >= 0; i--) {
+				buf[63 - i] = (pte->val & ((uint64_t)1 << i)) ? '1' : '0';
+			}
+			buf[64] = '\0';
+
+			alias_iommu_free_rmap(phys_pfn);			
+			
 			dma_clear_pte(pte);
+
+
 			if (!first_pte)
 				first_pte = pte;
 			last_pte = pte;
@@ -2189,7 +2380,7 @@ __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
 	unsigned long lvl_pages = 0;
 	phys_addr_t pteval;
 	u64 attr;
-
+	int i = 0;
 	if (unlikely(!domain_pfn_supported(domain, iov_pfn + nr_pages - 1)))
 		return -EINVAL;
 
@@ -2207,21 +2398,22 @@ __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
 	pteval = ((phys_addr_t)phys_pfn << VTD_PAGE_SHIFT) | attr;
 
 	while (nr_pages > 0) {
+		i++;
 		uint64_t tmp;
 
 		if (!pte) {
 			largepage_lvl = hardware_largepage_caps(domain, iov_pfn,
 					phys_pfn, nr_pages);
+			if (largepage_lvl != 1)
+				pr_info("largepage_lvl != 1\n");
 
-			pte = pfn_to_dma_pte(domain, iov_pfn, &largepage_lvl,
-					     gfp);
+			pte = pfn_to_dma_pte(domain, iov_pfn, &largepage_lvl, gfp);
 			if (!pte)
 				return -ENOMEM;
 			first_pte = pte;
-
+			
 			lvl_pages = lvl_to_nr_pages(largepage_lvl);
 
-			/* It is large page*/
 			if (largepage_lvl > 1) {
 				unsigned long end_pfn;
 				unsigned long pages_to_remove;
@@ -2252,6 +2444,11 @@ __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
 		}
 
 		nr_pages -= lvl_pages;
+
+		if(!domain_type_is_si(domain)){
+			alias_iommu_create_rmap(&domain->domain, phys_pfn, iov_pfn);
+			curr_pfn = phys_pfn;
+		}
 		iov_pfn += lvl_pages;
 		phys_pfn += lvl_pages;
 		pteval += lvl_pages * VTD_PAGE_SIZE;
@@ -2479,7 +2676,7 @@ static int dmar_domain_attach_device(struct dmar_domain *domain,
 			return ret;
 		}
 	}
-
+	domain->migration_supported = intel_is_migration_supported(iommu, domain);
 	ret = domain_context_mapping(domain, dev);
 	if (ret) {
 		dev_err(dev, "Domain context map failed\n");
@@ -3777,6 +3974,22 @@ int __init intel_iommu_init(void)
 	struct dmar_drhd_unit *drhd;
 	struct intel_iommu *iommu;
 
+
+	// pinmig 
+
+	pr_info("OMER: once intel_iommu_init\n");
+	int retv = iommu_pinmig_debugfs_init();
+	if (retv){
+		pr_info("Calling iommu_pinmig_debugfs_init from intel_iommu_init failed!!!!!!!!!");
+	}
+
+	retv = page_alias_debugfs_init();
+	if (retv){
+		pr_info("Calling page_alias_debugfs_init from intel_iommu_init failed!!!!!!!!!");
+	}
+
+	// pinmig
+
 	/*
 	 * Intel IOMMU is required for a TXT/tboot launch or platform
 	 * opt in, so enforce that.
@@ -3996,6 +4209,7 @@ static int md_domain_init(struct dmar_domain *domain, int guest_width)
 	domain->iommu_coherency = false;
 	domain->iommu_superpage = 0;
 	domain->max_addr = 0;
+	domain->migration_supported = false;
 
 	/* always allocate the top pgd */
 	domain->pgd = alloc_pgtable_page(domain->nid, GFP_ATOMIC);
@@ -4149,7 +4363,8 @@ static int intel_iommu_map(struct iommu_domain *domain,
 		}
 		dmar_domain->max_addr = max_addr;
 	}
-	/* Round up size to next multiple of PAGE_SIZE, if it and
+	// pr_info("is iova equls: %llX, %llX\n", hpa, intel_iommu_iova_to_phys(domain, iova));
+	/* Round up size to next multiple of PAGE_SIZE if it and
 	   the low bits of hpa would take us onto the next page */
 	size = aligned_nrpages(hpa, size);
 	return __domain_mapping(dmar_domain, iova >> VTD_PAGE_SHIFT,
@@ -4182,10 +4397,15 @@ static size_t intel_iommu_unmap(struct iommu_domain *domain,
 				unsigned long iova, size_t size,
 				struct iommu_iotlb_gather *gather)
 {
+	unsigned long phys_pfn = intel_iommu_iova_to_phys(domain, iova) >> VTD_PAGE_SHIFT;
+
 	struct dmar_domain *dmar_domain = to_dmar_domain(domain);
+	struct dma_pte *pte;
 	unsigned long start_pfn, last_pfn;
 	int level = 0;
+	pte = pfn_to_dma_pte(dmar_domain, iova >> VTD_PAGE_SHIFT, &level, GFP_ATOMIC);
 
+	
 	/* Cope with horrid API which requires us to unmap more than the
 	   size argument if it happens to be a large-page mapping. */
 	if (unlikely(!pfn_to_dma_pte(dmar_domain, iova >> VTD_PAGE_SHIFT,
@@ -4787,6 +5007,64 @@ static void *intel_iommu_hw_info(struct device *dev, u32 *length, u32 *type)
 	return vtd;
 }
 
+static int intel_migrate_page(struct iommu_domain *domain, unsigned long pfn, struct folio *new_folio, bool prepare)
+{
+	struct dmar_domain *dmar_domain = to_dmar_domain(domain);
+	struct iommu_domain_info *info;
+
+	int level = 1;
+	struct dma_pte *ptep, pte, new_pte; 
+	bool dirty, young, first_level; 
+	ptep = pfn_to_dma_pte(dmar_domain, pfn, &level, GFP_ATOMIC);
+	if (level != 1){
+		return -EINVAL;
+	}
+	pte = *ptep; 
+
+	first_level = dmar_domain->use_first_level;
+	dirty = dma_pte_dirty(&pte, first_level);
+	young = dma_pte_young(&pte, first_level);
+
+	unsigned long y;
+	if (prepare) {
+		/* Prepare the migration by clearing the access and dirty bits. */
+		if (dirty || young) {
+			new_pte = dma_pte_mkclean(pte, first_level);
+			new_pte = dma_pte_mkyoung(new_pte, first_level);
+			WRITE_ONCE(*ptep, new_pte);
+		}
+
+		xa_for_each(&dmar_domain->iommu_array, y, info)
+			iommu_flush_iotlb_psi(info->iommu, dmar_domain, pfn, 1, 0, 0);
+
+		return 0;
+	}
+
+	if (young || dirty){
+		return -EBUSY;
+	}
+
+	new_pte = pte;
+	new_pte.val &= ~VTD_PAGE_MASK;
+	unsigned long new_pfn = page_to_pfn(&new_folio->page); 
+	new_pte.val |= (new_pfn << VTD_PAGE_SHIFT);
+	struct page *new_page = folio_page(new_folio, 0);
+	__set_page_alias(new_page);
+	alias_iommu_create_rmap(domain, new_pfn, pfn);
+	
+	if (sleep_time > 0)
+		mdelay(sleep_time);
+
+	dirty = dma_pte_dirty(&pte, first_level);
+	young = dma_pte_young(&pte, first_level);
+
+	/* If the access bit is clean we would not need a TLB flush what does this mean? tlb flush only happens in prepare so it happens anyway*/
+	if (!try_cmpxchg64(&ptep->val, &pte.val, new_pte.val)){
+		return -EPINMIGF;
+	}
+	return 0;
+} 
+
 const struct iommu_ops intel_iommu_ops = {
 	.capable		= intel_iommu_capable,
 	.hw_info		= intel_iommu_hw_info,
@@ -4810,6 +5088,7 @@ const struct iommu_ops intel_iommu_ops = {
 		.set_dev_pasid		= intel_iommu_set_dev_pasid,
 		.map_pages		= intel_iommu_map_pages,
 		.unmap_pages		= intel_iommu_unmap_pages,
+		.migrate_page		= intel_migrate_page,
 		.iotlb_sync_map		= intel_iommu_iotlb_sync_map,
 		.flush_iotlb_all        = intel_flush_iotlb_all,
 		.iotlb_sync		= intel_iommu_tlb_sync,

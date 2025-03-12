@@ -75,6 +75,7 @@
 #include <linux/memremap.h>
 #include <linux/userfaultfd_k.h>
 #include <linux/mm_inline.h>
+#include <linux/page_alias.h>
 
 #include <asm/tlbflush.h>
 
@@ -2066,8 +2067,9 @@ static bool try_to_migrate_one(struct folio *folio, struct vm_area_struct *vma,
 				       !anon_exclusive, subpage);
 
 			/* See page_try_share_anon_rmap(): clear PTE first. */
+			// pr_info("is_alias_rmap_empty(subpage) = %d", is_alias_rmap_empty(subpage));
 			if (anon_exclusive &&
-			    page_try_share_anon_rmap(subpage)) {
+			    page_try_share_anon_rmap(subpage) && is_alias_rmap_empty(subpage)) {
 				if (folio_test_hugetlb(folio))
 					set_huge_pte_at(mm, address, pvmw.pte,
 							pteval, hsz);

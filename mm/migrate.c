@@ -12,7 +12,7 @@
  * Dave Hansen <haveblue@us.ibm.com>
  * Christoph Lameter
  */
-
+#include <linux/delay.h>
 #include <linux/migrate.h>
 #include <linux/export.h>
 #include <linux/swap.h>
@@ -54,8 +54,23 @@
 #include <asm/tlbflush.h>
 
 #include <trace/events/migrate.h>
+#include <linux/ktime.h>
+#include <linux/timekeeping.h>
+#include <linux/tracepoint.h>
+// #include <trace/events/pinmig.h>
+
+// #define CREATE_TRACE_POINTS
+// DEFINE_TRACE(pinmig_pfn);
+
+#include <linux/page_alias.h>
 
 #include "internal.h"
+
+
+
+
+
+int count_migrate_pages_batch = 0;
 
 bool isolate_movable_page(struct page *page, isolate_mode_t mode)
 {
@@ -376,16 +391,17 @@ unlock:
 #endif
 
 static int folio_expected_refs(struct address_space *mapping,
-		struct folio *folio)
+			       struct folio *folio)
 {
 	int refs = 1;
+	refs += get_alias_refcount(folio_page(folio, 0));
+
 	if (!mapping)
 		return refs;
 
 	refs += folio_nr_pages(folio);
 	if (folio_test_private(folio))
 		refs++;
-
 	return refs;
 }
 
@@ -397,22 +413,37 @@ static int folio_expected_refs(struct address_space *mapping,
  * 2 for pages with a mapping
  * 3 for pages with a mapping and PagePrivate/PagePrivate2 set.
  */
-int folio_migrate_mapping(struct address_space *mapping,
-		struct folio *newfolio, struct folio *folio, int extra_count)
+int folio_migrate_mapping(struct address_space *mapping, struct folio *newfolio,
+			  struct folio *folio, int extra_count,
+			  pgoff_t *save_index,
+			  struct address_space *save_mapping)
 {
-	XA_STATE(xas, &mapping->i_pages, folio_index(folio));
+	int expected_count = folio_expected_refs(mapping, folio) + extra_count;
+	bool kernel_pinned = is_alias_kernel_page(folio_page(folio, 0));
+	bool dma_pinned = is_alias_dma_page(folio_page(folio, 0));
+	long nr = folio_nr_pages(folio);
 	struct zone *oldzone, *newzone;
 	int dirty;
-	int expected_count = folio_expected_refs(mapping, folio) + extra_count;
-	long nr = folio_nr_pages(folio);
-
+	XA_STATE(xas, &mapping->i_pages, folio_index(folio));
 	if (!mapping) {
 		/* Anonymous page without mapping */
-		if (folio_ref_count(folio) != expected_count)
-			return -EAGAIN;
-
-		/* No turning back from here */
+		int count = folio_ref_count(folio);
+		// if (is_alias_dma_page(&folio->page)) {
+		while (count >= GUP_PIN_COUNTING_BIAS)
+			count -= (GUP_PIN_COUNTING_BIAS - 1);
+		// }
+		if (count != expected_count) {
+			if (dma_pinned && !kernel_pinned){
+			} else {
+				return -EAGAIN;
+			}
+		}
+		/* No turning back from here, until now. */
+		if (save_index)
+			save_index = &(newfolio->index);
 		newfolio->index = folio->index;
+		if (save_mapping)
+			save_mapping = newfolio->mapping;
 		newfolio->mapping = folio->mapping;
 		if (folio_test_swapbacked(folio))
 			__folio_set_swapbacked(newfolio);
@@ -638,10 +669,102 @@ void folio_migrate_flags(struct folio *newfolio, struct folio *folio)
 }
 EXPORT_SYMBOL(folio_migrate_flags);
 
-void folio_migrate_copy(struct folio *newfolio, struct folio *folio)
+void clean_folio_migrate_mapping(struct folio *newfolio, struct folio *folio,
+				 pgoff_t *save_index,
+				 struct address_space *save_mapping)
 {
+	if (folio_test_swapbacked(folio))
+		__folio_clear_swapbacked(newfolio);
+	if (save_index)
+		newfolio->index = *save_index;
+	newfolio->mapping = save_mapping;
+	folio_put(newfolio); 
+}
+
+void kernel_migrate_pinned_page_prepare(struct folio *folio, bool dma_pinned)
+{
+	struct page *page = folio_page(folio, 0);
+	void *vptr = get_alias_rmap(page);
+	pte_t *vpte = virt_to_kpte((unsigned long)vptr);
+	pte_t curr_pte;
+	flush_tlb_kernel_range((unsigned long)vptr, (unsigned long)vptr + PAGE_SIZE);
+	curr_pte = *vpte;
+	if (dma_pinned) //doesn't suppose to happen
+		return;
+	test_and_clear_bit(_PAGE_BIT_ACCESSED, (unsigned long *)&curr_pte.pte);
+	WRITE_ONCE(*vpte, curr_pte);
+}
+
+int kernel_migrate_pinned_page_commit(struct folio *newfolio, struct folio *folio, bool dma_pinned)
+{
+	struct page *curr_page, *new_page;
+	void *vptr;
+	pte_t *curr_pte, new_pte, old_pte;
+	int young;
+	int pinned;
+
+	curr_page = folio_page(folio, 0);
+	new_page = folio_page(newfolio, 0);
+	pinned = is_alias_rmap_empty(curr_page); 
+
+	if (pinned)
+		return MIGRATEPAGE_SUCCESS;
+
+	start_pinned_migration(curr_page);
+	vptr = get_alias_rmap(curr_page); 
+
+	curr_pte = virt_to_kpte((unsigned long)vptr);
+	old_pte = *curr_pte;
+	young = pte_young(*curr_pte);
+
+	if (young && !dma_pinned)
+		return -EPINMIGF;
+
+	new_pte = mk_pte(new_page, pte_pgprot(old_pte));
+	folio_ref_add(newfolio, 1);
+
+	if (!try_cmpxchg(curr_pte, &old_pte, new_pte))
+		return -EPINMIGF; 
+	
+	__set_page_alias(new_page);
+	alias_vmap(new_page);
+	end_pinned_migration(curr_page);
+
+	return MIGRATEPAGE_SUCCESS;
+}
+
+int folio_migrate_copy(struct folio *newfolio, struct folio *folio)
+{
+	struct page *page = folio_page(folio, 0);
+
+	trace_pinmig_pfn((unsigned long)page_to_pfn(page));
+
+	int pinned, dma_pinned, kernel_pinned;
+	dma_pinned = is_alias_dma_page(page);
+	kernel_pinned = is_alias_kernel_page(page);
+	pinned = (dma_pinned || kernel_pinned);
+
+	if (pinned) {
+		if (dma_pinned) 
+			call_dma_migrate_page(page, true, NULL);
+		if (kernel_pinned)
+			kernel_migrate_pinned_page_prepare(folio, dma_pinned);
+	}
 	folio_copy(newfolio, folio);
+	if (pinned) {
+		if (dma_pinned){
+			if (call_dma_migrate_page(page, false, newfolio) < 0){
+				return -EPINMIGF;
+			}
+		}
+		if (kernel_pinned){
+			if (kernel_migrate_pinned_page_commit(newfolio, folio, dma_pinned) != MIGRATEPAGE_SUCCESS){
+				return -EPINMIGF;
+			}
+		}
+	}
 	folio_migrate_flags(newfolio, folio);
+	return MIGRATEPAGE_SUCCESS;
 }
 EXPORT_SYMBOL(folio_migrate_copy);
 
@@ -650,21 +773,37 @@ EXPORT_SYMBOL(folio_migrate_copy);
  ***********************************************************/
 
 int migrate_folio_extra(struct address_space *mapping, struct folio *dst,
-		struct folio *src, enum migrate_mode mode, int extra_count)
+			struct folio *src, enum migrate_mode mode,
+			int extra_count)
 {
 	int rc;
+	bool pinned;
+	bool allow_pinmig = (mode == MIGRATE_ASYNC);
 
-	BUG_ON(folio_test_writeback(src));	/* Writeback must be complete */
 
-	rc = folio_migrate_mapping(mapping, dst, src, extra_count);
+	struct page *page = folio_page(src, 0);
+	pinned = (!is_alias_rmap_empty(page));
+	if (!allow_pinmig && pinned){
+		return -EPINMIGF;
+	}
+	BUG_ON(folio_test_writeback(src)); /* Writeback must be complete */
+	pgoff_t *save_index = NULL;
+	struct address_space *save_mapping = NULL;
+	rc = folio_migrate_mapping(mapping, dst, src, extra_count, save_index, save_mapping);
 
 	if (rc != MIGRATEPAGE_SUCCESS)
 		return rc;
 
-	if (mode != MIGRATE_SYNC_NO_COPY)
-		folio_migrate_copy(dst, src);
+	rc = MIGRATEPAGE_SUCCESS;
+	if (mode != MIGRATE_SYNC_NO_COPY){
+		rc = folio_migrate_copy(dst, src);
+	}
 	else
 		folio_migrate_flags(dst, src);
+	if (rc != MIGRATEPAGE_SUCCESS) {
+		clean_folio_migrate_mapping(dst, src, save_index, save_mapping);
+		return rc;
+	}
 	return MIGRATEPAGE_SUCCESS;
 }
 
@@ -722,21 +861,32 @@ unlock:
 }
 
 static int __buffer_migrate_folio(struct address_space *mapping,
-		struct folio *dst, struct folio *src, enum migrate_mode mode,
-		bool check_refs)
+				  struct folio *dst, struct folio *src,
+				  enum migrate_mode mode, bool check_refs)
 {
 	struct buffer_head *bh, *head;
-	int rc;
 	int expected_count;
+	bool kernel_pinned;
+	bool dma_pinned;
+	int rc;
 
 	head = folio_buffers(src);
-	if (!head)
+	if (!head) {
 		return migrate_folio(mapping, dst, src, mode);
+	}
 
 	/* Check whether page does not have extra refs before we do more work */
 	expected_count = folio_expected_refs(mapping, src);
-	if (folio_ref_count(src) != expected_count)
-		return -EAGAIN;
+	kernel_pinned = is_alias_kernel_page(&src->page);
+	dma_pinned = is_alias_dma_page(&src->page);
+
+	if (folio_ref_count(src) != expected_count) {
+		if (dma_pinned && !kernel_pinned) {//if dma pinned, we can ignore the refcount because we dont update it still. if kernel pinned, we need to check it.
+			pr_info("in %s, refcount wrong but dma pinned so ignoring\n", __func__);
+		} else {
+			return -EAGAIN;
+		}		
+	}
 
 	if (!buffer_migrate_lock_buffers(head, mode))
 		return -EAGAIN;
@@ -767,8 +917,10 @@ recheck_buffers:
 			goto recheck_buffers;
 		}
 	}
-
-	rc = folio_migrate_mapping(mapping, dst, src, 0);
+	pgoff_t *save_index = NULL;
+	struct address_space *save_mapping = NULL;
+	rc = folio_migrate_mapping(mapping, dst, src, 0, save_index,
+				   save_mapping);
 	if (rc != MIGRATEPAGE_SUCCESS)
 		goto unlock_buffers;
 
@@ -780,12 +932,15 @@ recheck_buffers:
 		bh = bh->b_this_page;
 	} while (bh != head);
 
+	rc = MIGRATEPAGE_SUCCESS;
 	if (mode != MIGRATE_SYNC_NO_COPY)
-		folio_migrate_copy(dst, src);
+		rc = folio_migrate_copy(dst, src);
 	else
 		folio_migrate_flags(dst, src);
+	if (rc != MIGRATEPAGE_SUCCESS) {
+		clean_folio_migrate_mapping(dst, src, save_index, save_mapping);
+	}
 
-	rc = MIGRATEPAGE_SUCCESS;
 unlock_buffers:
 	if (check_refs)
 		spin_unlock(&mapping->private_lock);
@@ -835,29 +990,37 @@ EXPORT_SYMBOL(buffer_migrate_folio);
  * Return: 0 on success or a negative errno on failure.
  */
 int buffer_migrate_folio_norefs(struct address_space *mapping,
-		struct folio *dst, struct folio *src, enum migrate_mode mode)
+				struct folio *dst, struct folio *src,
+				enum migrate_mode mode)
 {
 	return __buffer_migrate_folio(mapping, dst, src, mode, true);
 }
 EXPORT_SYMBOL_GPL(buffer_migrate_folio_norefs);
 #endif /* CONFIG_BUFFER_HEAD */
 
-int filemap_migrate_folio(struct address_space *mapping,
-		struct folio *dst, struct folio *src, enum migrate_mode mode)
+int filemap_migrate_folio(struct address_space *mapping, struct folio *dst,
+			  struct folio *src, enum migrate_mode mode)
 {
 	int ret;
-
-	ret = folio_migrate_mapping(mapping, dst, src, 0);
+	pgoff_t *save_index = NULL;
+	struct address_space *save_mapping = NULL;
+	ret = folio_migrate_mapping(mapping, dst, src, 0, save_index,
+				    save_mapping);
 	if (ret != MIGRATEPAGE_SUCCESS)
 		return ret;
 
 	if (folio_get_private(src))
 		folio_attach_private(dst, folio_detach_private(src));
 
+	ret = MIGRATEPAGE_SUCCESS;
 	if (mode != MIGRATE_SYNC_NO_COPY)
-		folio_migrate_copy(dst, src);
+		ret = folio_migrate_copy(dst, src);
 	else
 		folio_migrate_flags(dst, src);
+	if (ret != MIGRATEPAGE_SUCCESS) {
+		clean_folio_migrate_mapping(dst, src, save_index, save_mapping);
+		return ret;
+	}
 	return MIGRATEPAGE_SUCCESS;
 }
 EXPORT_SYMBOL_GPL(filemap_migrate_folio);
@@ -943,20 +1106,20 @@ static int fallback_migrate_folio(struct address_space *mapping,
  *  MIGRATEPAGE_SUCCESS - success
  */
 static int move_to_new_folio(struct folio *dst, struct folio *src,
-				enum migrate_mode mode)
+			     enum migrate_mode mode)
 {
 	int rc = -EAGAIN;
 	bool is_lru = !__PageMovable(&src->page);
-
+	// bool iommu_pin = is_alias_dma_page(&src->page);
 	VM_BUG_ON_FOLIO(!folio_test_locked(src), src);
 	VM_BUG_ON_FOLIO(!folio_test_locked(dst), dst);
 
 	if (likely(is_lru)) {
 		struct address_space *mapping = folio_mapping(src);
 
-		if (!mapping)
+		if (!mapping) {
 			rc = migrate_folio(mapping, dst, src, mode);
-		else if (mapping->a_ops->migrate_folio)
+		} else if (mapping->a_ops->migrate_folio) {
 			/*
 			 * Most folios have a mapping and most filesystems
 			 * provide a migrate_folio callback. Anonymous folios
@@ -965,9 +1128,10 @@ static int move_to_new_folio(struct folio *dst, struct folio *src,
 			 * for page migration.
 			 */
 			rc = mapping->a_ops->migrate_folio(mapping, dst, src,
-								mode);
-		else
+							   mode);
+		} else {
 			rc = fallback_migrate_folio(mapping, dst, src, mode);
+		}
 	} else {
 		const struct movable_operations *mops;
 
@@ -1049,26 +1213,27 @@ static void __migrate_folio_extract(struct folio *dst,
 }
 
 /* Restore the source folio to the original state upon failure */
-static void migrate_folio_undo_src(struct folio *src,
-				   int page_was_mapped,
-				   struct anon_vma *anon_vma,
-				   bool locked,
-				   struct list_head *ret)
+static void migrate_folio_undo_src(struct folio *src, int page_was_mapped,
+				   struct anon_vma *anon_vma, bool locked,
+				   struct list_head *ret, bool is_failed_pinmig)
 {
 	if (page_was_mapped)
 		remove_migration_ptes(src, src, false);
 	/* Drop an anon_vma reference if we took one */
-	if (anon_vma)
+	if (anon_vma){
 		put_anon_vma(anon_vma);
+        }
 	if (locked)
 		folio_unlock(src);
+
 	if (ret)
 		list_move_tail(&src->lru, ret);
 }
 
 /* Restore the destination folio to the original state upon failure */
 static void migrate_folio_undo_dst(struct folio *dst, bool locked,
-		free_folio_t put_new_folio, unsigned long private)
+				   free_folio_t put_new_folio,
+				   unsigned long private)
 {
 	if (locked)
 		folio_unlock(dst);
@@ -1168,6 +1333,7 @@ static int migrate_folio_unmap(new_folio_t get_new_folio,
 		 */
 		switch (mode) {
 		case MIGRATE_SYNC:
+                        break;
 		case MIGRATE_SYNC_NO_COPY:
 			break;
 		default:
@@ -1249,7 +1415,7 @@ out:
 	if (rc == -EAGAIN)
 		ret = NULL;
 
-	migrate_folio_undo_src(src, page_was_mapped, anon_vma, locked, ret);
+	migrate_folio_undo_src(src, page_was_mapped, anon_vma, locked, ret, false);
 	migrate_folio_undo_dst(dst, dst_locked, put_new_folio, private);
 
 	return rc;
@@ -1258,13 +1424,14 @@ out:
 /* Migrate the folio to the newly allocated folio in dst. */
 static int migrate_folio_move(free_folio_t put_new_folio, unsigned long private,
 			      struct folio *src, struct folio *dst,
-			      enum migrate_mode mode, enum migrate_reason reason,
-			      struct list_head *ret)
+			      enum migrate_mode mode,
+			      enum migrate_reason reason, struct list_head *ret)
 {
 	int rc;
 	int page_was_mapped = 0;
 	struct anon_vma *anon_vma = NULL;
 	bool is_lru = !__PageMovable(&src->page);
+	bool is_failed_pinmig = false;
 	struct list_head *prev;
 
 	__migrate_folio_extract(dst, &page_was_mapped, &anon_vma);
@@ -1272,6 +1439,7 @@ static int migrate_folio_move(free_folio_t put_new_folio, unsigned long private,
 	list_del(&dst->lru);
 
 	rc = move_to_new_folio(dst, src, mode);
+	is_failed_pinmig = (rc==-EPINMIGF) ? true : false;
 	if (rc)
 		goto out;
 
@@ -1321,13 +1489,13 @@ out:
 	 * A folio that has not been migrated will be restored to
 	 * right list unless we want to retry.
 	 */
+
 	if (rc == -EAGAIN) {
 		list_add(&dst->lru, prev);
 		__migrate_folio_record(dst, page_was_mapped, anon_vma);
 		return rc;
 	}
-
-	migrate_folio_undo_src(src, page_was_mapped, anon_vma, true, ret);
+	migrate_folio_undo_src(src, page_was_mapped, anon_vma, true, ret, is_failed_pinmig);
 	migrate_folio_undo_dst(dst, true, put_new_folio, private);
 
 	return rc;
@@ -1750,22 +1918,22 @@ move:
 
 		dst = list_first_entry(&dst_folios, struct folio, lru);
 		dst2 = list_next_entry(dst, lru);
-		list_for_each_entry_safe(folio, folio2, &unmap_folios, lru) {
-			is_thp = folio_test_large(folio) && folio_test_pmd_mappable(folio);
+		list_for_each_entry_safe(folio, folio2, &unmap_folios, lru) { //second iteration- migrating everything
+			is_thp = folio_test_large(folio) &&
+				 folio_test_pmd_mappable(folio);
 			nr_pages = folio_nr_pages(folio);
 
 			cond_resched();
-
-			rc = migrate_folio_move(put_new_folio, private,
-						folio, dst, mode,
-						reason, ret_folios);
+			rc = migrate_folio_move(put_new_folio, private, folio,
+						dst, mode, reason, ret_folios);
 			/*
 			 * The rules are:
 			 *	Success: folio will be freed
 			 *	-EAGAIN: stay on the unmap_folios list
+			 *	-EPINMIGF: remove from from list, will not try again in fallback.
 			 *	Other errno: put on ret_folios list
 			 */
-			switch(rc) {
+			switch (rc) {
 			case -EAGAIN:
 				retry++;
 				thp_retry += is_thp;
@@ -1774,6 +1942,12 @@ move:
 			case MIGRATEPAGE_SUCCESS:
 				stats->nr_succeeded += nr_pages;
 				stats->nr_thp_succeeded += is_thp;
+				break;
+			case -EPINMIGF:
+				nr_failed++;
+				stats->nr_thp_failed += is_thp;
+				stats->nr_failed_pages += nr_pages;
+				// list_del(&folio->lru);
 				break;
 			default:
 				nr_failed++;
@@ -1799,22 +1973,22 @@ out:
 		struct anon_vma *anon_vma = NULL;
 
 		__migrate_folio_extract(dst, &page_was_mapped, &anon_vma);
-		migrate_folio_undo_src(folio, page_was_mapped, anon_vma,
-				       true, ret_folios);
+		migrate_folio_undo_src(folio, page_was_mapped, anon_vma, true,
+				       ret_folios, false);
 		list_del(&dst->lru);
 		migrate_folio_undo_dst(dst, true, put_new_folio, private);
 		dst = dst2;
 		dst2 = list_next_entry(dst, lru);
 	}
-
 	return rc;
 }
 
 static int migrate_pages_sync(struct list_head *from, new_folio_t get_new_folio,
-		free_folio_t put_new_folio, unsigned long private,
-		enum migrate_mode mode, int reason,
-		struct list_head *ret_folios, struct list_head *split_folios,
-		struct migrate_pages_stats *stats)
+			      free_folio_t put_new_folio, unsigned long private,
+			      enum migrate_mode mode, int reason,
+			      struct list_head *ret_folios,
+			      struct list_head *split_folios,
+			      struct migrate_pages_stats *stats)
 {
 	int rc, nr_failed = 0;
 	LIST_HEAD(folios);

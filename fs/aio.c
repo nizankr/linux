@@ -454,7 +454,7 @@ static int aio_migrate_folio(struct address_space *mapping, struct folio *dst,
 	BUG_ON(folio_test_writeback(src));
 	folio_get(dst);
 
-	rc = folio_migrate_mapping(mapping, dst, src, 1);
+	rc = folio_migrate_mapping(mapping, dst, src, 1, NULL, NULL);
 	if (rc != MIGRATEPAGE_SUCCESS) {
 		folio_put(dst);
 		goto out_unlock;

@@ -4947,7 +4947,6 @@ static int intel_migrate_page(struct iommu_domain *domain, unsigned long pfn, st
 	}
 
 	new_pte = pte;
-	unsigned long old_phys_pfn = dma_pte_addr(&pte) >> VTD_PAGE_SHIFT;
 	new_pte.val &= ~VTD_PAGE_MASK;
 	unsigned long new_pfn = page_to_pfn(&new_folio->page);
 	new_pte.val |= (new_pfn << VTD_PAGE_SHIFT);
@@ -4967,7 +4966,6 @@ static int intel_migrate_page(struct iommu_domain *domain, unsigned long pfn, st
 	if (!try_cmpxchg64(&ptep->val, &pte.val, new_pte.val)){
 		return -EPINMIGF;
 	}
-	alias_iommu_free_rmap(old_phys_pfn);
 	return 0;
 } 
 

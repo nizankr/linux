@@ -1889,7 +1889,7 @@ megasas_build_and_issue_cmd(struct megasas_instance *instance,
 	if (sleep_time > 0)
 		mdelay(sleep_time); //has to be delay, not sleep
 	#endif
-	
+
 	ktime_get_real_ts64(&ts);
 
 	/*
@@ -9246,7 +9246,10 @@ err_pcidrv:
  */
 static void __exit megasas_exit(void)
 {
+	#ifdef CONFIG_PINMIG_MAP_DELAY
 	megasas_debugfs_exit();
+	#endif
+	
 	driver_remove_file(&megasas_pci_driver.driver,
 			   &driver_attr_dbg_lvl);
 	driver_remove_file(&megasas_pci_driver.driver,

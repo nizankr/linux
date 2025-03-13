@@ -4301,8 +4301,6 @@ static size_t intel_iommu_unmap(struct iommu_domain *domain,
 				unsigned long iova, size_t size,
 				struct iommu_iotlb_gather *gather)
 {
-	unsigned long phys_pfn = intel_iommu_iova_to_phys(domain, iova) >> VTD_PAGE_SHIFT;
-
 	struct dmar_domain *dmar_domain = to_dmar_domain(domain);
 	struct dma_pte *pte;
 	unsigned long start_pfn, last_pfn;
@@ -4910,6 +4908,7 @@ static void *intel_iommu_hw_info(struct device *dev, u32 *length, u32 *type)
 	return vtd;
 }
 
+// pfn argument is iov pfn
 static int intel_migrate_page(struct iommu_domain *domain, unsigned long pfn, struct folio *new_folio, bool prepare)
 {
 	struct dmar_domain *dmar_domain = to_dmar_domain(domain);
@@ -4948,16 +4947,17 @@ static int intel_migrate_page(struct iommu_domain *domain, unsigned long pfn, st
 	}
 
 	new_pte = pte;
+	unsigned long old_phys_pfn = dma_pte_addr(&pte) >> VTD_PAGE_SHIFT;
 	new_pte.val &= ~VTD_PAGE_MASK;
-	unsigned long new_pfn = page_to_pfn(&new_folio->page); 
+	unsigned long new_pfn = page_to_pfn(&new_folio->page);
 	new_pte.val |= (new_pfn << VTD_PAGE_SHIFT);
 	struct page *new_page = folio_page(new_folio, 0);
 	__set_page_alias(new_page);
 	alias_iommu_create_rmap(domain, new_pfn, pfn);
-
+	
 	#ifdef CONFIG_PINMIG_MIGRATION_DELAY
 	if (sleep_time > 0)
-		mdelay(sleep_time);
+	mdelay(sleep_time);
 	#endif
 
 	dirty = dma_pte_dirty(&pte, first_level);
@@ -4967,6 +4967,7 @@ static int intel_migrate_page(struct iommu_domain *domain, unsigned long pfn, st
 	if (!try_cmpxchg64(&ptep->val, &pte.val, new_pte.val)){
 		return -EPINMIGF;
 	}
+	alias_iommu_free_rmap(old_phys_pfn);
 	return 0;
 } 
 

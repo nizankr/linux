@@ -48,7 +48,7 @@
 #include "megaraid_sas_fusion.h"
 #include "megaraid_sas.h"
 
-
+#ifdef CONFIG_PINMIG_MAP_DELAY
 static struct dentry *dir, *file1, *file2;
 static unsigned long curr_pfn = 0;
 static int sleep_time = 0;
@@ -145,6 +145,7 @@ void __exit megasas_fusion_debugfs_exit(void)
     debugfs_remove(dir);
     pr_info("megasas_fusion debugfs interface removed\n");
 }
+#endif
 
 extern void
 megasas_complete_cmd(struct megasas_instance *instance,
@@ -3461,21 +3462,22 @@ static u32
 megasas_build_and_issue_cmd_fusion(struct megasas_instance *instance,
 				   struct scsi_cmnd *scmd)
 {
+	#ifdef CONFIG_PINMIG_MAP_DELAY
 	struct scatterlist *sg;
     struct page *page;
     unsigned long pfn = 0;
-
-    // Assuming single scatter-gather entry for simplicity
+    // Assuming single sg entry
 	if (scmd)
-    	sg = scsi_sglist(scmd);
+		sg = scsi_sglist(scmd);
 	if (sg)
-    	page = sg_page(sg);
+		page = sg_page(sg);
 
-    // Get PFN from page
+	// Get PFN from page
 	if (page){
-    	pfn = page_to_pfn(page);
+		pfn = page_to_pfn(page);
 		curr_pfn = pfn;
 	}
+	#endif
 
 	struct megasas_cmd_fusion *cmd, *r1_cmd = NULL;
 	union MEGASAS_REQUEST_DESCRIPTOR_UNION *req_desc;
@@ -3542,9 +3544,12 @@ megasas_build_and_issue_cmd_fusion(struct megasas_instance *instance,
 
 	struct timespec64 ts;
 	ktime_get_real_ts64(&ts);
-	if (sleep_time > 0)
-		mdelay(sleep_time); //has to be delay, not sleep (pinmig)
 	
+	#ifdef CONFIG_PINMIG_MAP_DELAY
+	if (sleep_time > 0)
+		mdelay(sleep_time); //has to be delay, not sleep because of preemption
+	#endif
+
 	ktime_get_real_ts64(&ts);
 	trace_printk("MEGASAS FUSION: Current time after moving the head: %lld.%09ld seconds\n", (long long)ts.tv_sec, ts.tv_nsec);
 

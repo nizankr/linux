@@ -32,57 +32,12 @@
 #include "cap_audit.h"
 #include "perfmon.h"
 #include <linux/page_alias.h>
+
+#ifdef CONFIG_PINMIG_MIGRATION_DELAY
 #include <linux/debugfs.h>
 
-static struct dentry *dir_tr, *file_tr;
-static unsigned long curr_pfn = 0;
 static struct dentry *dir, *file;
 static int sleep_time = 0;
-int total_rmaps;
-
-static ssize_t total_rmaps_read(struct file *filp, char __user *buffer, size_t len, loff_t *offset)
-{
-    char buf[64];
-    int ret = snprintf(buf, sizeof(buf), "%d\n", total_rmaps);
-    return simple_read_from_buffer(buffer, len, offset, buf, ret);
-}
-
-static ssize_t total_rmaps_write(struct file *filp, const char __user *buffer, size_t len, loff_t *offset)
-{
-    return 0;
-}
-
-static const struct file_operations fops_tr = {
-    .owner = THIS_MODULE,
-    .read = total_rmaps_read,
-    .write = total_rmaps_write,
-};
-
-int __init page_alias_debugfs_init(void)
-{
-    // Create the debugfs directory and file
-    dir_tr = debugfs_create_dir("page_alias", NULL);
-    if (!dir_tr) {
-        pr_err("Failed to create debugfs directory for page_alias :(\n");
-        return -ENOMEM;
-    }
-
-    file_tr = debugfs_create_file("total_rmaps", 0666, dir_tr, NULL, &fops_tr);
-    if (!file_tr) {
-        pr_err("Failed to create debugfs total_rmaps file\n");
-        debugfs_remove(dir_tr);
-        return -ENOMEM;
-    }
-    pr_info("page_alias debugfs interface initialized\n");
-    return 0;
-}
-
-void __exit page_alias_debugfs_exit(void)
-{
-    debugfs_remove(file_tr);
-    debugfs_remove(dir_tr);
-    pr_info("page_alias debugfs interface removed\n");
-}
 
 static ssize_t sleep_time_read(struct file *filp, char __user *buffer, size_t len, loff_t *offset)
 {
@@ -144,6 +99,7 @@ void __exit iommu_pinmig_debugfs_exit(void)
     debugfs_remove(dir);
     pr_info("iommu_pinmig debugfs interface removed\n");
 }
+#endif
 
 #define ROOT_SIZE		VTD_PAGE_SIZE
 #define CONTEXT_SIZE		VTD_PAGE_SIZE
@@ -2402,7 +2358,6 @@ __domain_mapping(struct dmar_domain *domain, unsigned long iov_pfn,
 
 		if(!domain_type_is_si(domain)){
 			alias_iommu_create_rmap(&domain->domain, phys_pfn, iov_pfn);
-			curr_pfn = phys_pfn;
 		}
 		iov_pfn += lvl_pages;
 		phys_pfn += lvl_pages;
@@ -3929,6 +3884,7 @@ int __init intel_iommu_init(void)
 	struct dmar_drhd_unit *drhd;
 	struct intel_iommu *iommu;
 
+	#ifdef CONFIG_PINMIG_MIGRATION_DELAY
 	int retv = iommu_pinmig_debugfs_init();
 	if (retv){
 		pr_info("Calling iommu_pinmig_debugfs_init from intel_iommu_init failed");
@@ -3938,7 +3894,7 @@ int __init intel_iommu_init(void)
 	if (retv){
 		pr_info("Calling page_alias_debugfs_init from intel_iommu_init failed");
 	}
-
+	#endif
 	/*
 	 * Intel IOMMU is required for a TXT/tboot launch or platform
 	 * opt in, so enforce that.
@@ -4312,6 +4268,8 @@ static int intel_iommu_map(struct iommu_domain *domain,
 		}
 		dmar_domain->max_addr = max_addr;
 	}
+	/* Round up size to next multiple of PAGE_SIZE, if it and
+	   the low bits of hpa would take us onto the next page */
 	size = aligned_nrpages(hpa, size);
 	return __domain_mapping(dmar_domain, iova >> VTD_PAGE_SHIFT,
 				hpa >> VTD_PAGE_SHIFT, size, prot, gfp);
@@ -4996,9 +4954,11 @@ static int intel_migrate_page(struct iommu_domain *domain, unsigned long pfn, st
 	struct page *new_page = folio_page(new_folio, 0);
 	__set_page_alias(new_page);
 	alias_iommu_create_rmap(domain, new_pfn, pfn);
-	
+
+	#ifdef CONFIG_PINMIG_MIGRATION_DELAY
 	if (sleep_time > 0)
 		mdelay(sleep_time);
+	#endif
 
 	dirty = dma_pte_dirty(&pte, first_level);
 	young = dma_pte_young(&pte, first_level);

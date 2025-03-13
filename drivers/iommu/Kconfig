@@ -3,6 +3,10 @@
 config IOMMU_IOVA
 	tristate
 
+# Adding delay in intel_migrate_page before checking the access bit
+config PINMIG_MIGRATION_DELAY
+	bool
+
 # IOMMU_API always gets selected by whoever wants it.
 config IOMMU_API
 	bool

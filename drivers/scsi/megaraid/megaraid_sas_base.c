@@ -38,7 +38,6 @@
 #include <linux/vmalloc.h>
 #include <linux/irq_poll.h>
 #include <linux/blk-mq-pci.h>
-#include <linux/debugfs.h>
 #include <linux/tracepoint.h>
 
 #include <scsi/scsi.h>
@@ -49,6 +48,9 @@
 #include <scsi/scsi_dbg.h>
 #include "megaraid_sas_fusion.h"
 #include "megaraid_sas.h"
+
+#ifdef CONFIG_PINMIG_MAP_DELAY
+#include <linux/debugfs.h>
 
 static struct dentry *dir, *file1, *file2;
 static unsigned long curr_pfn = 0;
@@ -146,6 +148,7 @@ void __exit megasas_debugfs_exit(void)
     debugfs_remove(dir);
     pr_info("megasas debugfs interface removed\n");
 }
+#endif
 
 /*
  * Number of sectors per IO command
@@ -1840,11 +1843,12 @@ u32
 megasas_build_and_issue_cmd(struct megasas_instance *instance,
 			    struct scsi_cmnd *scmd)
 {
+	#ifdef CONFIG_PINMIG_MAP_DELAY
 	struct scatterlist *sg;
     unsigned long pfn = 0;
     struct page *page;
 
-    // Assuming single scatter-gather entry for simplicity
+    // Assuming single sg entry
 	if (scmd)
     	sg = scsi_sglist(scmd);
 	if (sg)
@@ -1855,6 +1859,7 @@ megasas_build_and_issue_cmd(struct megasas_instance *instance,
     	pfn = page_to_pfn(page);
 		curr_pfn = pfn;
 	}
+	#endif
 
 	struct megasas_cmd *cmd;
 	u32 frame_count;
@@ -1879,8 +1884,12 @@ megasas_build_and_issue_cmd(struct megasas_instance *instance,
 
 	struct timespec64 ts;
 	ktime_get_real_ts64(&ts);
+
+	#ifdef CONFIG_PINMIG_MAP_DELAY
 	if (sleep_time > 0)
 		mdelay(sleep_time); //has to be delay, not sleep
+	#endif
+	
 	ktime_get_real_ts64(&ts);
 
 	/*
@@ -9103,6 +9112,7 @@ megasas_aen_polling(struct work_struct *work)
  */
 static int __init megasas_init(void)
 {
+	#ifdef CONFIG_PINMIG_MAP_DELAY
 	int ret, ret2;
 	ret = megasas_debugfs_init();
 	ret2 = megasas_fusion_debugfs_init(); 
@@ -9110,6 +9120,8 @@ static int __init megasas_init(void)
 		pr_info("Calling megasas_debugfs_init from megaraid_sas_base failed!!!!!!!!!");
 		return ret;
 	}
+	#endif
+
 	int rval;
 
 	/*

@@ -849,10 +849,10 @@ static int __buffer_migrate_folio(struct address_space *mapping,
 		bool check_refs)
 {
 	struct buffer_head *bh, *head;
+	int rc;
 	int expected_count;
 	bool kernel_pinned;
 	bool dma_pinned;
-	int rc;
 
 	head = folio_buffers(src);
 	if (!head)
@@ -1311,7 +1311,6 @@ static int migrate_folio_unmap(new_folio_t get_new_folio,
 		 */
 		switch (mode) {
 		case MIGRATE_SYNC:
-			break;
 		case MIGRATE_SYNC_NO_COPY:
 			break;
 		default:

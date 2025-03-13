@@ -28,8 +28,6 @@
 #define READY_TO_MOVE 0
 
 
-extern int total_rmaps;
-
 struct iommu_rmap {
 	struct iommu_domain *domain;
 	unsigned long phys_pfn;
@@ -356,8 +354,6 @@ void alias_iommu_create_rmap(struct iommu_domain *domain, unsigned long phys_pfn
 		BUG_ON(true);
 		return;
 	}
-
-	total_rmaps++;
 	
 	struct page_alias *page_alias = page_ext_data(page_ext, &page_alias_ops);
 	if (!page_alias) {
@@ -403,7 +399,6 @@ void alias_iommu_free_rmap(unsigned long phys_pfn){
 		}
 		return;
 	}
-	total_rmaps--; 
 	page_alias = page_ext_data(page_ext, &page_alias_ops);
 	page_alias->iommu_ref_count = 0;
 	page_alias->iommu_rmap = empty_rmap;

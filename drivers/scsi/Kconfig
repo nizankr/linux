@@ -1,6 +1,10 @@
 # SPDX-License-Identifier: GPL-2.0-only
 menu "SCSI device support"
 
+# Adding delay before removing mapping for debugging pinmigrations
+config PINMIG_MAP_DELAY
+	bool
+
 config SCSI_MOD
 	tristate
 	default y if SCSI=n || SCSI=y
